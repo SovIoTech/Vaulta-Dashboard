@@ -1,0 +1,31 @@
+/* Add this to your App.css or equivalent file */
+.App {
+  text-align: center;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.App-header {
+  background-color: #282c34;
+  color: white;
+  padding: 20px;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.sign-out-button {
+  background-color: #ff7f7f;
+  border: none;
+  padding: 10px;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+main {
+  font-size: 1.2rem;
+}

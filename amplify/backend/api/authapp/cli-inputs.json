@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "serviceConfiguration": {
+    "apiName": "authapp",
+    "serviceName": "AppSync",
+    "defaultAuthType": {
+      "mode": "API_KEY",
+      "expirationTime": 7,
+      "apiKeyExpirationDate": "2025-02-05T20:55:50.293Z",
+      "keyDescription": "DynamoDBQuery"
+    },
+    "conflictResolution": {},
+    "additionalAuthTypes": []
+  }
+}

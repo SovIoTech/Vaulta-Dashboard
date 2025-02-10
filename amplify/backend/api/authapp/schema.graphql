@@ -1,0 +1,13 @@
+type BatteryData
+  @model
+  @auth(rules: [{ allow: owner }, { allow: groups, groups: ["Admin"] }]) {
+  TagID: ID! @primaryKey(sortKeyFields: ["Timestamp"])
+  Timestamp: AWSTimestamp!
+  UserID: ID! @index(name: "UserIDIndex", queryField: "batteryByUser")
+  UserName: String!
+  Voltage: Float
+  Current: Float
+  SOC: Float
+  Temperatures: [Float]
+  CellVoltages: [Float]
+}
