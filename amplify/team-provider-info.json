@@ -17,6 +17,12 @@
       },
       "api": {
         "authapp": {}
+      },
+      "hosting": {
+        "amplifyhosting": {
+          "appId": "d2mh96acssh4pn",
+          "type": "manual"
+        }
       }
     }
   }

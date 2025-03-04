@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Authenticator } from "@aws-amplify/ui-react";
-import "./AuthWrapper.css"; // Create this CSS file for styling
+import { signOut } from "aws-amplify/auth"; // Import signOut function
+import "./AuthWrapper.css";
 
 const AuthWrapper = ({ children }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -9,9 +10,18 @@ const AuthWrapper = ({ children }) => {
     setDropdownOpen(!isDropdownOpen);
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut(); // Use the signOut function
+      console.log("User signed out successfully");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
   return (
     <Authenticator>
-      {({ signOut, user }) => (
+      {({ user }) => (
         <div className="auth-container">
           {/* Top Bar */}
           <div className="top-bar">
@@ -23,7 +33,7 @@ const AuthWrapper = ({ children }) => {
               {isDropdownOpen && (
                 <div className="dropdown-menu">
                   <div className="dropdown-item">{user?.username}</div>
-                  <button onClick={signOut} className="dropdown-item">
+                  <button onClick={handleSignOut} className="dropdown-item">
                     Log Out
                   </button>
                 </div>

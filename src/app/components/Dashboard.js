@@ -1,10 +1,38 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import CircularGauge from "./CircularGauge.js";
+import CircularGauge from "./CircularGauge.js"; // Ensure this is used
+import LoadingSpinner from "./LoadingSpinner.js";
 
 const Dashboard = ({ bmsData, signOut }) => {
   const [bmsState, setBmsState] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // List of base IDs (only the first hex base ID from each line)
+  const baseIds = [
+    "0x100",
+    "0x140",
+    "0x180",
+    "0x1C0",
+    "0x200",
+    "0x240",
+    "0x280",
+    "0x2C0",
+    "0x400",
+    "0x440",
+    "0x480",
+    "0x4C0",
+    "0x500",
+    "0x540",
+    "0x580",
+    "0x5C0",
+    "0x600",
+    "0x640",
+    "0x680",
+    "0x6C0",
+    "0x740",
+    "0x780",
+  ];
 
   useEffect(() => {
     console.log("bmsData:", bmsData); // Debugging: Log bmsData
@@ -21,7 +49,7 @@ const Dashboard = ({ bmsData, signOut }) => {
   }, [bmsData]);
 
   if (!bmsState) {
-    return <div>Loading BMS Data...</div>;
+    return <LoadingSpinner />;
   }
 
   // Helper function to round values to two decimal places
@@ -172,6 +200,7 @@ const Dashboard = ({ bmsData, signOut }) => {
             borderRadius: "10px",
             boxShadow: "0px 10px 30px rgba(0, 0, 0, 0.1)",
             marginBottom: "20px",
+            position: "relative",
           }}
         >
           <h1 style={{ fontSize: "24px", fontWeight: "600", color: "#333" }}>
@@ -181,6 +210,63 @@ const Dashboard = ({ bmsData, signOut }) => {
             <p>Device ID: {bmsState.DeviceId?.N || "N/A"}</p>
             <p>Serial Number: {bmsState.SerialNumber?.N || "N/A"}</p>
             <p>Tag ID: {bmsState.TagID?.S || "N/A"}</p>
+          </div>
+
+          {/* Dropdown Menu */}
+          <div
+            style={{
+              position: "absolute",
+              top: "20px",
+              right: "20px",
+              width: "160px",
+            }}
+          >
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              style={{
+                background: "#333",
+                border: "none",
+                color: "#fff",
+                padding: "10px",
+                borderRadius: "5px",
+                cursor: "pointer",
+                width: "100%",
+                textAlign: "left",
+              }}
+            >
+              Select Base ID ▼
+            </button>
+            {isDropdownOpen && (
+              <div
+                style={{
+                  background: "#fff",
+                  border: "1px solid #ddd",
+                  borderRadius: "5px",
+                  boxShadow: "0px 10px 30px rgba(0, 0, 0, 0.1)",
+                  marginTop: "5px",
+                  maxHeight: "200px",
+                  overflowY: "auto",
+                }}
+              >
+                {baseIds.map((baseId, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      padding: "10px",
+                      cursor: "pointer",
+                      borderBottom: "1px solid #ddd",
+                      color: "#333",
+                    }}
+                    onClick={() => {
+                      console.log("Selected Base ID:", baseId);
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    {baseId}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
