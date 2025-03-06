@@ -1,6 +1,8 @@
 import React from "react";
+import { signOut } from "aws-amplify/auth"; // Import the signOut function
+import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen, signOut, navigate }) => {
+const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
   const menuItems = [
     {
       icon: "📊",
@@ -18,6 +20,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, signOut, navigate }) => {
       onClick: () => navigate("/page3"), // Navigate to Page 3
     },
   ];
+
+  // Function to handle logout
+  const handleSignOut = async () => {
+    try {
+      await signOut(); // Sign out the user
+      navigate("/login"); // Redirect to the login page after logout
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   return (
     <div
@@ -116,7 +128,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, signOut, navigate }) => {
               }}
             >
               <button
-                onClick={signOut}
+                onClick={handleSignOut} // Call handleSignOut on click
                 style={{
                   background: "#696cff",
                   color: "white",
@@ -165,7 +177,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, signOut, navigate }) => {
             </button>
           ))}
           <button
-            onClick={signOut}
+            onClick={handleSignOut} // Call handleSignOut on click
             style={{
               background: "none",
               border: "none",

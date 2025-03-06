@@ -15,26 +15,28 @@ const CircularGauge = ({
   // Dynamic colors for percentage
   const gaugeColor =
     percentage > 70 ? "#28a745" : percentage > 40 ? "#ffc107" : "#dc3545";
+
   return (
     <div
       style={{
-        width: "300px",
-        height: "450px",
+        width: "250px", // Reduced container width
+        height: "400px", // Reduced container height
         border: "1px solid #ddd",
         borderRadius: "10px",
         padding: "20px",
         margin: "20px",
-        background: "white",
-        boxShadow: "0px 10px 30px rgba(0, 0, 0, 0.1)",
+        background: "#fff",
+        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         transition: "all 0.3s ease",
       }}
     >
+      {/* Title */}
       <h3
         style={{
-          fontSize: "22px",
+          fontSize: "20px",
           fontWeight: "600",
           color: "#333",
           textAlign: "center",
@@ -44,11 +46,12 @@ const CircularGauge = ({
         {title}
       </h3>
 
+      {/* Description */}
       {description && (
         <p
           style={{
             fontSize: "14px",
-            color: "#555",
+            color: "#666",
             textAlign: "center",
             marginBottom: "15px",
           }}
@@ -57,10 +60,11 @@ const CircularGauge = ({
         </p>
       )}
 
+      {/* Min Value */}
       <div
         style={{
-          fontSize: "16px",
-          color: "green",
+          fontSize: "14px",
+          color: "#666",
           textAlign: "center",
         }}
         title="Minimum Value"
@@ -68,31 +72,33 @@ const CircularGauge = ({
         Min: {min}
       </div>
 
+      {/* Circular Progress Bar */}
       <div
         style={{
-          width: "100%",
-          height: 250,
+          width: "150px", // Reduced width for the progress bar container
+          height: "150px", // Reduced height for the progress bar container
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          marginBottom: "10px",
+          margin: "0 auto 10px", // Center the progress bar
         }}
       >
         <CircularProgressbar
           value={percentage}
           text={`${percentage}%`}
           styles={buildStyles({
-            pathColor: "gray",
+            pathColor: gaugeColor, // Dynamic color based on percentage
             textColor: "#333",
-            textSize: "18px",
+            textSize: "16px", // Adjusted text size
           })}
         />
       </div>
 
+      {/* Delta (Percentage Change) */}
       <div style={{ textAlign: "center", marginBottom: "10px" }}>
         <div
           style={{
-            fontSize: "18px",
+            fontSize: "16px",
             fontWeight: "bold",
             color: "#333",
           }}
@@ -121,10 +127,11 @@ const CircularGauge = ({
         </div>
       </div>
 
+      {/* Max Value */}
       <div
         style={{
-          fontSize: "16px",
-          color: "red",
+          fontSize: "14px",
+          color: "#666",
           textAlign: "center",
         }}
         title="Maximum Value"

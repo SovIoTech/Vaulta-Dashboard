@@ -1,4 +1,3 @@
-// Gauges.js
 import React from "react";
 import CircularGauge from "./CircularGauge.js";
 
@@ -8,6 +7,8 @@ const Gauges = ({ bmsState, roundValue }) => {
       title: "Max Cell Temp",
       value: roundValue(bmsState.MaxCellTemp?.N || 0),
       info: `Node: ${bmsState.MaxCellTempNode?.N || "N/A"}`,
+      min: 0,
+      max: 100, // Adjust based on your data
     },
     {
       title: "Max Cell Voltage",
@@ -15,11 +16,15 @@ const Gauges = ({ bmsState, roundValue }) => {
       info: `Cell: ${bmsState.MaximumCellVoltageCellNo?.N || "N/A"}, Node: ${
         bmsState.MaximumCellVoltageNode?.N || "N/A"
       }`,
+      min: 0,
+      max: 5, // Adjust based on your data
     },
     {
       title: "Min Cell Temp",
       value: roundValue(bmsState.MinCellTemp?.N || 0),
       info: `Node: ${bmsState.MinCellTempNode?.N || "N/A"}`,
+      min: 0,
+      max: 100, // Adjust based on your data
     },
     {
       title: "Min Cell Voltage",
@@ -27,6 +32,8 @@ const Gauges = ({ bmsState, roundValue }) => {
       info: `Cell: ${bmsState.MinimumCellVoltageCellNo?.N || "N/A"}, Node: ${
         bmsState.MinimumCellVoltageNode?.N || "N/A"
       }`,
+      min: 0,
+      max: 5, // Adjust based on your data
     },
   ];
 
@@ -43,11 +50,12 @@ const Gauges = ({ bmsState, roundValue }) => {
         <CircularGauge
           key={index}
           title={gauge.title}
+          description={gauge.info} // Pass description as additional info
           percentage={gauge.value}
-          min={0}
-          max={100}
+          min={gauge.min}
+          max={gauge.max}
           currentValue={gauge.value}
-          additionalInfo={gauge.info}
+          percentageChange={0} // Add percentage change if available
         />
       ))}
     </div>
