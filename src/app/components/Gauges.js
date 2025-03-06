@@ -1,10 +1,9 @@
-// components/Gauges.js
-"use client";
+// Gauges.js
 import React from "react";
 import CircularGauge from "./CircularGauge.js";
 
 const Gauges = ({ bmsState, roundValue }) => {
-  const gaugeData = [
+  const gauges = [
     {
       title: "Max Cell Temp",
       value: roundValue(bmsState.MaxCellTemp?.N || 0),
@@ -40,7 +39,7 @@ const Gauges = ({ bmsState, roundValue }) => {
         marginBottom: "20px",
       }}
     >
-      {gaugeData.map((gauge, index) => (
+      {gauges.map((gauge, index) => (
         <CircularGauge
           key={index}
           title={gauge.title}

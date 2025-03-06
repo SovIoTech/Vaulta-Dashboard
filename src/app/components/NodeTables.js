@@ -1,17 +1,16 @@
-// components/NodeTables.js
-"use client";
-import React from "react";
+import React, { useState } from "react";
 
 const NodeTables = ({ nodeData }) => {
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-        gap: "20px",
-      }}
-    >
-      {nodeData.map((node, index) => (
+  const [activeView, setActiveView] = useState("voltages"); // Toggle between voltages and temperatures
+
+  const renderTable = (dataType) => {
+    return nodeData.map((node, index) => {
+      const dataToRender =
+        dataType === "voltages"
+          ? node.data.cellVoltages
+          : node.data.temperatures;
+
+      return (
         <div
           key={index}
           style={{
@@ -19,10 +18,12 @@ const NodeTables = ({ nodeData }) => {
             borderRadius: "10px",
             boxShadow: "0px 10px 30px rgba(0, 0, 0, 0.1)",
             padding: "20px",
+            marginBottom: "20px",
           }}
         >
           <h3 style={{ fontWeight: "bold", marginBottom: "10px" }}>
-            {node.node} Cell Voltages
+            {node.node}{" "}
+            {dataType === "voltages" ? "Cell Voltages" : "Temperatures"}
           </h3>
           <table
             style={{
@@ -34,69 +35,111 @@ const NodeTables = ({ nodeData }) => {
             <thead>
               <tr style={{ backgroundColor: "#f8f9fa" }}>
                 <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                  Cell
+                  {dataType === "voltages" ? "Cell" : "Temp"}
                 </th>
                 <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                  Voltage (V)
+                  {dataType === "voltages" ? "Voltage (V)" : "Value (°C)"}
+                </th>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>
+                  Status
                 </th>
               </tr>
             </thead>
             <tbody>
-              {node.data.cellVoltages.map((voltage, i) => (
-                <tr key={i}>
-                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    Cell {i}
-                  </td>
-                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    {voltage}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              {dataToRender.map((value, i) => {
+                const status =
+                  dataType === "voltages"
+                    ? value > 4.2
+                      ? "High"
+                      : value < 3.0
+                      ? "Low"
+                      : "Normal"
+                    : value > 45
+                    ? "Critical"
+                    : value < 0
+                    ? "Low"
+                    : "Normal";
 
-          <h3
-            style={{
-              fontWeight: "bold",
-              marginTop: "20px",
-              marginBottom: "10px",
-            }}
-          >
-            {node.node} Temperatures
-          </h3>
-          <table
-            style={{
-              width: "100%",
-              textAlign: "left",
-              borderCollapse: "collapse",
-            }}
-          >
-            <thead>
-              <tr style={{ backgroundColor: "#f8f9fa" }}>
-                <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                  Temp
-                </th>
-                <th style={{ padding: "10px", border: "1px solid #ddd" }}>
-                  Value (°C)
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {node.data.temperatures.map((temp, i) => (
-                <tr key={i}>
-                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    Temp {i}
-                  </td>
-                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    {temp}
-                  </td>
-                </tr>
-              ))}
+                const statusColor =
+                  status === "High" || status === "Critical"
+                    ? "red"
+                    : status === "Low"
+                    ? "orange"
+                    : "green";
+
+                return (
+                  <tr key={i}>
+                    <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                      {dataType === "voltages" ? `Cell ${i}` : `Temp ${i}`}
+                    </td>
+                    <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                      {value}
+                    </td>
+                    <td
+                      style={{
+                        padding: "10px",
+                        border: "1px solid #ddd",
+                        color: statusColor,
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {status}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
-          <p style={{ marginTop: "10px" }}>Temp Count: {node.data.tempCount}</p>
+          {dataType === "voltages" && (
+            <p style={{ marginTop: "10px", color: "#666" }}>
+              Total Temp Count: {node.data.tempCount}
+            </p>
+          )}
         </div>
-      ))}
+      );
+    });
+  };
+
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          marginBottom: "20px",
+        }}
+      >
+        <button
+          onClick={() => setActiveView("voltages")}
+          style={{
+            margin: "0 10px",
+            padding: "10px 20px",
+            backgroundColor: activeView === "voltages" ? "#007bff" : "#f8f9fa",
+            color: activeView === "voltages" ? "white" : "black",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+        >
+          Cell Voltages
+        </button>
+        <button
+          onClick={() => setActiveView("temperatures")}
+          style={{
+            margin: "0 10px",
+            padding: "10px 20px",
+            backgroundColor:
+              activeView === "temperatures" ? "#007bff" : "#f8f9fa",
+            color: activeView === "temperatures" ? "white" : "black",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+        >
+          Temperatures
+        </button>
+      </div>
+      {renderTable(activeView)}
     </div>
   );
 };

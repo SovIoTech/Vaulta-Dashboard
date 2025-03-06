@@ -7,6 +7,7 @@
   "dependencies": {
     "@aws-amplify/api-graphql": "^4.7.2",
     "@aws-amplify/ui-react": "^6.9.1",
+    "@aws-sdk/client-cognito-identity-provider": "^3.760.0",
     "aws-amplify": "^6.11.0",
     "aws-sdk": "^2.1692.0",
     "cra-template": "1.2.0",
