@@ -8,7 +8,8 @@ const Gauges = ({ bmsState, roundValue }) => {
       value: roundValue(bmsState.MaxCellTemp?.N || 0),
       info: `Node: ${bmsState.MaxCellTempNode?.N || "N/A"}`,
       min: 0,
-      max: 100, // Adjust based on your data
+      max: 100,
+      unit: "°C", // Add unit for temperature
     },
     {
       title: "Max Cell Voltage",
@@ -17,14 +18,16 @@ const Gauges = ({ bmsState, roundValue }) => {
         bmsState.MaximumCellVoltageNode?.N || "N/A"
       }`,
       min: 0,
-      max: 5, // Adjust based on your data
+      max: 5,
+      unit: "V", // Add unit for voltage
     },
     {
       title: "Min Cell Temp",
       value: roundValue(bmsState.MinCellTemp?.N || 0),
       info: `Node: ${bmsState.MinCellTempNode?.N || "N/A"}`,
       min: 0,
-      max: 100, // Adjust based on your data
+      max: 100,
+      unit: "°C", // Add unit for temperature
     },
     {
       title: "Min Cell Voltage",
@@ -33,7 +36,8 @@ const Gauges = ({ bmsState, roundValue }) => {
         bmsState.MinimumCellVoltageNode?.N || "N/A"
       }`,
       min: 0,
-      max: 5, // Adjust based on your data
+      max: 5,
+      unit: "V", // Add unit for voltage
     },
   ];
 
@@ -41,21 +45,20 @@ const Gauges = ({ bmsState, roundValue }) => {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", // Flexible grid layout
         gap: "20px",
-        marginBottom: "20px",
+        width: "100%", // Occupy full width
       }}
     >
       {gauges.map((gauge, index) => (
         <CircularGauge
           key={index}
           title={gauge.title}
-          description={gauge.info} // Pass description as additional info
-          percentage={gauge.value}
+          description={gauge.info}
+          value={gauge.value} // Pass the actual value
           min={gauge.min}
           max={gauge.max}
-          currentValue={gauge.value}
-          percentageChange={0} // Add percentage change if available
+          unit={gauge.unit} // Pass the unit
         />
       ))}
     </div>

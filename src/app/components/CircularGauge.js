@@ -6,12 +6,15 @@ import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 const CircularGauge = ({
   title,
   description,
-  percentage,
+  value,
   min,
   max,
-  currentValue,
+  unit,
   percentageChange,
 }) => {
+  // Calculate percentage for visualization
+  const percentage = ((value - min) / (max - min)) * 100;
+
   // Dynamic colors for percentage
   const gaugeColor =
     percentage > 70 ? "#28a745" : percentage > 40 ? "#ffc107" : "#dc3545";
@@ -19,14 +22,13 @@ const CircularGauge = ({
   return (
     <div
       style={{
-        width: "250px", // Reduced container width
-        height: "400px", // Reduced container height
-        border: "1px solid #ddd",
-        borderRadius: "10px",
+        width: "250px", // Fixed width for consistency
+        height: "400px", // Fixed height for consistency
+        border: "1px solid #e0e0e0", // CoreUI border color
+        borderRadius: "8px", // CoreUI border radius
         padding: "20px",
-        margin: "20px",
-        background: "#fff",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+        background: "#fff", // CoreUI background color
+        boxShadow: "0 4px 6px rgba(0,0,0,0.05)", // CoreUI shadow
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -36,9 +38,9 @@ const CircularGauge = ({
       {/* Title */}
       <h3
         style={{
-          fontSize: "20px",
-          fontWeight: "600",
-          color: "#333",
+          fontSize: "1.25rem", // CoreUI font size
+          fontWeight: "600", // CoreUI font weight
+          color: "#3c4b64", // CoreUI primary text color
           textAlign: "center",
           marginBottom: "10px",
         }}
@@ -50,8 +52,8 @@ const CircularGauge = ({
       {description && (
         <p
           style={{
-            fontSize: "14px",
-            color: "#666",
+            fontSize: "0.9rem", // CoreUI font size
+            color: "#6c757d", // CoreUI secondary text color
             textAlign: "center",
             marginBottom: "15px",
           }}
@@ -63,20 +65,20 @@ const CircularGauge = ({
       {/* Min Value */}
       <div
         style={{
-          fontSize: "14px",
-          color: "#666",
+          fontSize: "0.9rem", // CoreUI font size
+          color: "#6c757d", // CoreUI secondary text color
           textAlign: "center",
         }}
         title="Minimum Value"
       >
-        Min: {min}
+        Min: {min} {unit} {/* Display min value with unit */}
       </div>
 
       {/* Circular Progress Bar */}
       <div
         style={{
-          width: "150px", // Reduced width for the progress bar container
-          height: "150px", // Reduced height for the progress bar container
+          width: "150px", // Fixed width for the progress bar container
+          height: "150px", // Fixed height for the progress bar container
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -85,10 +87,10 @@ const CircularGauge = ({
       >
         <CircularProgressbar
           value={percentage}
-          text={`${percentage}%`}
+          text={`${value} ${unit}`} // Display actual value and unit
           styles={buildStyles({
             pathColor: gaugeColor, // Dynamic color based on percentage
-            textColor: "#333",
+            textColor: "#3c4b64", // CoreUI primary text color
             textSize: "16px", // Adjusted text size
           })}
         />
@@ -98,17 +100,17 @@ const CircularGauge = ({
       <div style={{ textAlign: "center", marginBottom: "10px" }}>
         <div
           style={{
-            fontSize: "16px",
-            fontWeight: "bold",
-            color: "#333",
+            fontSize: "1rem", // CoreUI font size
+            fontWeight: "600", // CoreUI font weight
+            color: "#3c4b64", // CoreUI primary text color
           }}
         >
           Delta
         </div>
         <div
           style={{
-            fontSize: "14px",
-            color: percentageChange > 0 ? "#28a745" : "#dc3545",
+            fontSize: "0.9rem", // CoreUI font size
+            color: percentageChange > 0 ? "#28a745" : "#dc3545", // Dynamic color
             fontWeight: "500",
           }}
           title="Percentage Change"
@@ -130,13 +132,13 @@ const CircularGauge = ({
       {/* Max Value */}
       <div
         style={{
-          fontSize: "14px",
-          color: "#666",
+          fontSize: "0.9rem", // CoreUI font size
+          color: "#6c757d", // CoreUI secondary text color
           textAlign: "center",
         }}
         title="Maximum Value"
       >
-        Max: {max}
+        Max: {max} {unit} {/* Display max value with unit */}
       </div>
     </div>
   );

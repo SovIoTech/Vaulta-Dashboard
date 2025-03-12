@@ -2,12 +2,7 @@ import { useState, useEffect } from "react";
 import { fetchAuthSession } from "aws-amplify/auth";
 import AWS from "aws-sdk";
 import awsconfig from "./aws-exports.js";
-import {
-  getLastMinuteData,
-  getLastInsertedData,
-  getDataByTagAndTimestamp,
-  getDataByTimestamp,
-} from "./queries.js";
+import { getLastMinuteData } from "./queries.js";
 
 const useDynamoDB = () => {
   const [tableMetadata, setTableMetadata] = useState(null);
@@ -33,6 +28,7 @@ const useDynamoDB = () => {
       } catch (error) {
         console.error("Error fetching AWS credentials:", error);
         setErrorMessage("Failed to fetch AWS credentials.");
+        setData(null); // Set data to null if there's an error
       }
     };
 
@@ -76,31 +72,11 @@ const useDynamoDB = () => {
         "CAN_BMS_Data",
         tagID
       );
-      /*
-      const lastInsertedData = await getLastInsertedData(
-        dynamoDB,
-        "CAN_BMS_Data",
-        tagID
-      );
-      const rangeData = await getDataByTagAndTimestamp(
-        dynamoDB,
-        "CAN_BMS_Data",
-        tagID,
-        1738262120,
-        1738262130
-      );
-      const timestampData = await getDataByTimestamp(
-        dynamoDB,
-        "CAN_BMS_Data",
-        tagID,
-        1738262121
-      );
-      */
-      //setData({ lastMinuteData, lastInsertedData, rangeData, timestampData });
       setData({ lastMinuteData });
     } catch (error) {
       console.error("Error fetching data:", error);
       setErrorMessage("Failed to fetch data.");
+      setData(null); // Set data to null if there's an error
     }
   };
 

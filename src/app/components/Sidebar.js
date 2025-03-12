@@ -35,29 +35,31 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
     <div
       style={{
         width: sidebarOpen ? "250px" : "80px",
-        backgroundColor: "white",
-        color: "#566a7f",
+        backgroundColor: "#fff", // CoreUI uses white background
+        color: "#4f5d73", // CoreUI's default text color
         transition: "width 0.3s ease",
         padding: "20px 0",
         position: "sticky",
         top: 0,
         height: "100vh",
-        borderRight: "1px solid #e0e0e0",
+        borderRight: "1px solid #e0e0e0", // Light border for separation
         boxShadow: "2px 0 4px rgba(0,0,0,0.05)",
         display: "flex",
         flexDirection: "column",
       }}
     >
+      {/* Toggle Button */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
         style={{
           background: "none",
           border: "none",
-          color: "#696cff",
+          color: "#3c4b64", // CoreUI's primary text color
           cursor: "pointer",
           alignSelf: "flex-end",
           marginRight: "15px",
           marginBottom: "20px",
+          fontSize: "1.2rem",
         }}
       >
         {sidebarOpen ? "◀" : "▶"}
@@ -65,11 +67,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
 
       {sidebarOpen ? (
         <div>
+          {/* Sidebar Header */}
           <h3
             style={{
               marginTop: "10px",
               marginBottom: "20px",
-              color: "#696cff",
+              color: "#3c4b64", // CoreUI's primary text color
               fontWeight: "600",
               paddingLeft: "20px",
               textTransform: "uppercase",
@@ -79,6 +82,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
             Main Menu
           </h3>
 
+          {/* Menu Items */}
           <ul style={{ listStyle: "none", padding: 0 }}>
             {menuItems.map((item, index) => (
               <li
@@ -93,7 +97,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
                   style={{
                     background: "none",
                     border: "none",
-                    color: "#566a7f",
+                    color: "#4f5d73", // CoreUI's default text color
                     cursor: "pointer",
                     fontSize: "1rem",
                     display: "flex",
@@ -103,12 +107,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
                     borderRadius: "8px",
                     transition: "background-color 0.2s ease",
                   }}
-                  className="hover:bg-[#f5f5f9]"
+                  className="hover:bg-[#f0f2f5]" // Light hover effect
                 >
                   <span
                     style={{
                       marginRight: "12px",
-                      color: "#696cff",
+                      color: "#3c4b64", // CoreUI's primary text color
                       display: "flex",
                       alignItems: "center",
                     }}
@@ -120,6 +124,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
               </li>
             ))}
 
+            {/* Logout Button */}
             <li
               style={{
                 margin: "10px 0",
@@ -128,10 +133,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
               }}
             >
               <button
-                onClick={handleSignOut} // Call handleSignOut on click
+                onClick={handleSignOut}
                 style={{
-                  background: "#696cff",
-                  color: "white",
+                  background: "#3c4b64", // CoreUI's primary color
+                  color: "#fff", // White text
                   border: "none",
                   cursor: "pointer",
                   fontSize: "1rem",
@@ -140,10 +145,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
                   width: "calc(100% - 40px)",
                   padding: "10px",
                   borderRadius: "8px",
-                  boxShadow: "0 2px 4px rgba(105, 108, 255, 0.4)",
+                  boxShadow: "0 2px 4px rgba(60, 75, 100, 0.4)", // Subtle shadow
                   transition: "background-color 0.3s ease",
                 }}
-                className="hover:bg-[#5a5eff]"
+                className="hover:bg-[#2c3a50]" // Darker hover effect
               >
                 🚪 Log Out
               </button>
@@ -158,6 +163,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
             alignItems: "center",
           }}
         >
+          {/* Collapsed Menu Icons */}
           {menuItems.map((item, index) => (
             <button
               key={index}
@@ -165,26 +171,29 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
               style={{
                 background: "none",
                 border: "none",
-                color: "#566a7f",
+                color: "#4f5d73", // CoreUI's default text color
                 cursor: "pointer",
                 padding: "10px",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
+                fontSize: "1.2rem",
               }}
             >
               {item.icon}
             </button>
           ))}
+          {/* Collapsed Logout Icon */}
           <button
-            onClick={handleSignOut} // Call handleSignOut on click
+            onClick={handleSignOut}
             style={{
               background: "none",
               border: "none",
-              color: "#696cff",
+              color: "#3c4b64", // CoreUI's primary text color
               cursor: "pointer",
               marginTop: "auto",
               padding: "10px",
+              fontSize: "1.2rem",
             }}
           >
             🚪

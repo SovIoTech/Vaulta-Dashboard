@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify"; // For popup notifications
+import "react-toastify/dist/ReactToastify.css"; // CSS for notifications
 import Sidebar from "./Sidebar.js";
 import TopBanner from "./TopBanner.js";
 import Cards from "./Cards.js";
@@ -10,7 +12,8 @@ import LoadingSpinner from "./LoadingSpinner.js";
 const Dashboard = ({ bmsData, signOut }) => {
   const [bmsState, setBmsState] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const navigate = useNavigate(); // Get the navigate function
+  const [activeTab, setActiveTab] = useState("cards"); // Track active tab
+  const navigate = useNavigate();
 
   const baseIds = [
     "0x100",
@@ -48,6 +51,13 @@ const Dashboard = ({ bmsData, signOut }) => {
       setBmsState(bmsData.lastMinuteData[0]);
     } else {
       console.error("bmsData is not in the expected format or is empty.");
+      toast.error(
+        "Backend returned null data. Displaying placeholder values.",
+        {
+          autoClose: 5000, // Popup disappears after 5 seconds
+        }
+      );
+      setBmsState({}); // Set bmsState to an empty object to avoid crashes
     }
   }, [bmsData]);
 
@@ -57,29 +67,37 @@ const Dashboard = ({ bmsData, signOut }) => {
     {
       node: "Node 00",
       data: {
-        balanceStatus: roundValue(bmsState?.Node00BalanceStatus?.N || 0),
-        totalVoltage: roundValue(bmsState?.Node00TotalVoltage?.N || 0),
+        balanceStatus: roundValue(bmsState?.Node00BalanceStatus?.N || "NaN"),
+        totalVoltage: roundValue(bmsState?.Node00TotalVoltage?.N || "NaN"),
         cellVoltages: Array.from({ length: 14 }, (_, i) =>
-          roundValue(bmsState?.[`Node00Cell${i < 10 ? `0${i}` : i}`]?.N || 0)
+          roundValue(
+            bmsState?.[`Node00Cell${i < 10 ? `0${i}` : i}`]?.N || "NaN"
+          )
         ),
         temperatures: Array.from({ length: 6 }, (_, i) =>
-          roundValue(bmsState?.[`Node00Temp${i < 10 ? `0${i}` : i}`]?.N || 0)
+          roundValue(
+            bmsState?.[`Node00Temp${i < 10 ? `0${i}` : i}`]?.N || "NaN"
+          )
         ),
-        tempCount: roundValue(bmsState?.Node00TempCount?.N || 0),
+        tempCount: roundValue(bmsState?.Node00TempCount?.N || "NaN"),
       },
     },
     {
       node: "Node 01",
       data: {
-        balanceStatus: roundValue(bmsState?.Node01BalanceStatus?.N || 0),
-        totalVoltage: roundValue(bmsState?.Node01TotalVoltage?.N || 0),
+        balanceStatus: roundValue(bmsState?.Node01BalanceStatus?.N || "NaN"),
+        totalVoltage: roundValue(bmsState?.Node01TotalVoltage?.N || "NaN"),
         cellVoltages: Array.from({ length: 14 }, (_, i) =>
-          roundValue(bmsState?.[`Node01Cell${i < 10 ? `0${i}` : i}`]?.N || 0)
+          roundValue(
+            bmsState?.[`Node01Cell${i < 10 ? `0${i}` : i}`]?.N || "NaN"
+          )
         ),
         temperatures: Array.from({ length: 6 }, (_, i) =>
-          roundValue(bmsState?.[`Node01Temp${i < 10 ? `0${i}` : i}`]?.N || 0)
+          roundValue(
+            bmsState?.[`Node01Temp${i < 10 ? `0${i}` : i}`]?.N || "NaN"
+          )
         ),
-        tempCount: roundValue(bmsState?.Node01TempCount?.N || 0),
+        tempCount: roundValue(bmsState?.Node01TempCount?.N || "NaN"),
       },
     },
   ];
@@ -93,57 +111,120 @@ const Dashboard = ({ bmsData, signOut }) => {
       style={{
         display: "flex",
         minHeight: "100vh",
-        backgroundColor: "#f5f5f9",
+        backgroundColor: "#f8f9fa", // CoreUI's light background color
         fontFamily:
           "Public Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
       }}
     >
+      <ToastContainer /> {/* For displaying popup notifications */}
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         signOut={signOut}
-        navigate={navigate} // Pass navigate to Sidebar
+        navigate={navigate}
       />
       <div
         style={{
           flex: 1,
           padding: "20px",
-          backgroundColor: "#f5f5f9", // Consistent with outer background
-          maxWidth: "calc(100% - 80px)", // Adjust for sidebar width
+          backgroundColor: "#f8f9fa", // CoreUI's light background color
+          maxWidth: "calc(100% - 80px)",
+          overflow: "hidden", // Prevent vertical scrolling
         }}
       >
-        <TopBanner bmsState={bmsState} baseIds={baseIds} />
+        <TopBanner bmsState={bmsState} />
+
+        {/* Tab Navigation */}
         <div
           style={{
-            backgroundColor: "white",
-            borderRadius: "8px",
-            padding: "20px",
-            boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
+            display: "flex",
+            justifyContent: "center",
             marginBottom: "20px",
           }}
         >
-          <Cards bmsState={bmsState} roundValue={roundValue} />
+          <button
+            onClick={() => setActiveTab("cards")}
+            style={{
+              margin: "0 10px",
+              padding: "10px 20px",
+              backgroundColor: activeTab === "cards" ? "#3c4b64" : "#f8f9fa",
+              color: activeTab === "cards" ? "#fff" : "#4f5d73",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "600",
+            }}
+          >
+            Cards & Gauges
+          </button>
+          <button
+            onClick={() => setActiveTab("tables")}
+            style={{
+              margin: "0 10px",
+              padding: "10px 20px",
+              backgroundColor: activeTab === "tables" ? "#3c4b64" : "#f8f9fa",
+              color: activeTab === "tables" ? "#fff" : "#4f5d73",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "600",
+            }}
+          >
+            Tables
+          </button>
         </div>
+
+        {/* Tab Content */}
         <div
           style={{
-            backgroundColor: "white",
-            borderRadius: "8px",
-            padding: "20px",
-            boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
-            marginBottom: "20px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
           }}
         >
-          <Gauges bmsState={bmsState} roundValue={roundValue} />
-        </div>
-        <div
-          style={{
-            backgroundColor: "white",
-            borderRadius: "8px",
-            padding: "20px",
-            boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
-          }}
-        >
-          <NodeTables nodeData={nodeData} />
+          {activeTab === "cards" ? (
+            <>
+              {/* Cards Section */}
+              <div
+                style={{
+                  backgroundColor: "#fff", // White background for cards
+                  borderRadius: "8px",
+                  padding: "20px",
+                  boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
+                  marginBottom: "20px",
+                  width: "100%",
+                }}
+              >
+                <Cards bmsState={bmsState} roundValue={roundValue} />
+              </div>
+
+              {/* Gauges Section */}
+              <div
+                style={{
+                  backgroundColor: "#fff", // White background for gauges
+                  borderRadius: "8px",
+                  padding: "20px",
+                  boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
+                  width: "100%",
+                }}
+              >
+                <Gauges bmsState={bmsState} roundValue={roundValue} />
+              </div>
+            </>
+          ) : (
+            /* Tables Section */
+            <div
+              style={{
+                backgroundColor: "#fff", // White background for tables
+                borderRadius: "8px",
+                padding: "20px",
+                boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
+                width: "100%",
+              }}
+            >
+              <NodeTables nodeData={nodeData} />
+            </div>
+          )}
         </div>
       </div>
     </div>
