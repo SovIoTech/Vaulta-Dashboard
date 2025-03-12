@@ -33,7 +33,7 @@ export const listUsers = async () => {
     };
 
     const data = await cognito.listUsers(params); // Call the listUsers API
-    console.log("List of users:", JSON.stringify(data.Users, null, 2)); // Log users to the console
+    // console.log("List of users:", JSON.stringify(data.Users, null, 2)); // Log users to the console
     return data.Users; // Return the list of users
   } catch (error) {
     console.error("Error listing users:", error);

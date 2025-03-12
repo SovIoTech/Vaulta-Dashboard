@@ -41,7 +41,7 @@ export const fetchData = async (selectedTagId, selectedTimeRange) => {
     const credentials = session.credentials;
 
     const dynamoDB = new AWS.DynamoDB({
-      apiVersion: "2012-08-10",
+      apiVersion: "2012-10-17",
       region: awsconfig.region,
       credentials,
     });
@@ -117,7 +117,7 @@ export const fetchData = async (selectedTagId, selectedTimeRange) => {
     // Iterate through all fetched data objects
     fetchedData.forEach((item) => {
       // Log the current item to debug
-      console.log("Processing item:", item);
+      // console.log("Processing item:", item);
 
       // Process Node0 data
       for (let i = 0; i < 14; i++) {

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar.js";
 import { fetchData } from "./DataFetcher.js"; // Import the fetchData function
 import DataViewer from "./DataViewer.js"; // Import the DataViewer component
-import PackDataViewer from "./PackDataViewer.js"; // Import the PackDataViewer component
 
 const Page3 = ({ signOut }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -73,9 +72,10 @@ const Page3 = ({ signOut }) => {
       style={{
         display: "flex",
         minHeight: "100vh",
-        backgroundColor: "#f9f9f9", // Light background
+        backgroundColor: "#ffffff", // White background
+        color: "#1e1e2f", // Dark text
         fontFamily:
-          "Public Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+          "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
       }}
     >
       <Sidebar
@@ -88,103 +88,116 @@ const Page3 = ({ signOut }) => {
         style={{
           flex: 1,
           padding: "20px",
-          backgroundColor: "#f9f9f9", // Light background
+          backgroundColor: "#ffffff", // White background
           maxWidth: "calc(100% - 80px)",
         }}
       >
         <h1
           style={{
             fontSize: "24px",
-            fontWeight: "600",
-            color: "#333", // Darker text for headings
+            fontWeight: "700",
+            color: "#1e1e2f", // Dark text
             marginBottom: "20px",
           }}
         >
           Data Viewer
         </h1>
 
-        {/* TagID Dropdown */}
+        {/* TagID and Time Range Dropdowns */}
         <div
           style={{
+            display: "flex",
+            gap: "10px", // Space between the dropdowns
             marginBottom: "20px",
-            backgroundColor: "#fff", // White card
-            padding: "15px",
-            borderRadius: "10px", // Rounded corners
-            boxShadow: "0 4px 6px rgba(0,0,0,0.1)", // Soft shadow
           }}
         >
-          <label
-            htmlFor="tagId"
+          {/* TagID Dropdown */}
+          <div
             style={{
-              fontSize: "14px",
-              color: "#666", // Gray text for labels
-              marginBottom: "10px",
-              display: "block",
+              flex: 1, // Take up equal space
+              backgroundColor: "#f9f9f9", // Light card background
+              padding: "10px",
+              borderRadius: "12px", // Rounded corners
+              boxShadow: "0 4px 6px rgba(0,0,0,0.1)", // Soft shadow
             }}
           >
-            Select TagID:
-          </label>
-          <select
-            id="tagId"
-            value={selectedTagId}
-            onChange={(e) => setSelectedTagId(e.target.value)}
-            style={{
-              padding: "8px 12px",
-              borderRadius: "6px",
-              border: "1px solid #ddd", // Light border
-              width: "100%",
-              fontSize: "14px",
-              color: "#333", // Darker text for input
-            }}
-          >
-            {baseIds.map((id) => (
-              <option key={id} value={id}>
-                {id}
-              </option>
-            ))}
-          </select>
-        </div>
+            <label
+              htmlFor="tagId"
+              style={{
+                fontSize: "14px",
+                color: "#666666", // Gray text for labels
+                marginBottom: "5px",
+                display: "block",
+              }}
+            >
+              Select TagID:
+            </label>
+            <select
+              id="tagId"
+              value={selectedTagId}
+              onChange={(e) => setSelectedTagId(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "8px",
+                border: "1px solid #e0e0e0", // Light border
+                width: "100%",
+                fontSize: "14px",
+                color: "#1e1e2f", // Dark text
+                backgroundColor: "#ffffff", // White background
+                cursor: "pointer",
+              }}
+            >
+              {baseIds.map((id) => (
+                <option key={id} value={id}>
+                  {id}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {/* Time Range Dropdown */}
-        <div
-          style={{
-            marginBottom: "20px",
-            backgroundColor: "#fff", // White card
-            padding: "15px",
-            borderRadius: "10px", // Rounded corners
-            boxShadow: "0 4px 6px rgba(0,0,0,0.1)", // Soft shadow
-          }}
-        >
-          <label
-            htmlFor="timeRange"
+          {/* Time Range Dropdown */}
+          <div
             style={{
-              fontSize: "14px",
-              color: "#666", // Gray text for labels
-              marginBottom: "10px",
-              display: "block",
+              flex: 1, // Take up equal space
+              backgroundColor: "#f9f9f9", // Light card background
+              padding: "10px",
+              borderRadius: "12px", // Rounded corners
+              boxShadow: "0 4px 6px rgba(0,0,0,0.1)", // Soft shadow
             }}
           >
-            Select Time Range:
-          </label>
-          <select
-            id="timeRange"
-            value={selectedTimeRange}
-            onChange={(e) => setSelectedTimeRange(e.target.value)}
-            style={{
-              padding: "8px 12px",
-              borderRadius: "6px",
-              border: "1px solid #ddd", // Light border
-              width: "100%",
-              fontSize: "14px",
-              color: "#333", // Darker text for input
-            }}
-          >
-            {timeRanges.map((range) => (
-              <option key={range.value} value={range.value}>
-                {range.label}
-              </option>
-            ))}
-          </select>
+            <label
+              htmlFor="timeRange"
+              style={{
+                fontSize: "14px",
+                color: "#666666", // Gray text for labels
+                marginBottom: "5px",
+                display: "block",
+              }}
+            >
+              Select Time Range:
+            </label>
+            <select
+              id="timeRange"
+              value={selectedTimeRange}
+              onChange={(e) => setSelectedTimeRange(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "8px",
+                border: "1px solid #e0e0e0", // Light border
+                width: "100%",
+                fontSize: "14px",
+                color: "#1e1e2f", // Dark text
+                backgroundColor: "#ffffff", // White background
+                cursor: "pointer",
+              }}
+            >
+              {timeRanges.map((range) => (
+                <option key={range.value} value={range.value}>
+                  {range.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Button to fetch data */}
@@ -201,9 +214,10 @@ const Page3 = ({ signOut }) => {
               backgroundColor: "#696cff", // Accent color
               color: "white",
               border: "none",
-              borderRadius: "6px",
+              borderRadius: "8px",
               cursor: "pointer",
               fontSize: "14px",
+              fontWeight: "600",
               boxShadow: "0 4px 6px rgba(0,0,0,0.1)", // Soft shadow
               transition: "background-color 0.3s ease",
             }}
@@ -218,7 +232,7 @@ const Page3 = ({ signOut }) => {
           <p
             style={{
               fontSize: "14px",
-              color: "#666", // Gray text for loading
+              color: "#666666", // Gray text for loading
               textAlign: "center",
             }}
           >
@@ -238,15 +252,12 @@ const Page3 = ({ signOut }) => {
           <>
             {/* Render Node0 and Node1 Data */}
             <DataViewer data={data} />
-
-            {/* Render Pack-Level Data */}
-            <PackDataViewer packData={data.Pack} />
           </>
         ) : (
           <p
             style={{
               fontSize: "14px",
-              color: "#666", // Gray text for no data
+              color: "#666666", // Gray text for no data
               textAlign: "center",
             }}
           >
