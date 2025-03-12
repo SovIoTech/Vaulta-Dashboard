@@ -1,10 +1,10 @@
 {
   "version": "1",
   "cognitoConfig": {
-    "identityPoolName": "authappa2a159d6_identitypool_a2a159d6",
+    "identityPoolName": "vaultapool",
     "allowUnauthenticatedIdentities": false,
-    "resourceNameTruncated": "authapa2a159d6",
-    "userPoolName": "authappa2a159d6_userpool_a2a159d6",
+    "resourceNameTruncated": "authapfbf322c9",
+    "userPoolName": "vaultauserpool",
     "autoVerifiedAttributes": [
       "email"
     ],
@@ -31,16 +31,23 @@
     "userpoolClientReadAttributes": [
       "email"
     ],
-    "userpoolClientLambdaRole": "authapa2a159d6_userpoolclient_lambda_role",
+    "userpoolClientLambdaRole": "authapfbf322c9_userpoolclient_lambda_role",
     "userpoolClientSetAttributes": false,
-    "sharedId": "a2a159d6",
-    "resourceName": "authappa2a159d6",
+    "sharedId": "fbf322c9",
+    "resourceName": "authappfbf322c9fbf322c9",
     "authSelections": "identityPoolAndUserPool",
-    "useDefault": "default",
+    "useDefault": "manual",
+    "thirdPartyAuth": false,
     "usernameAttributes": [
       "email"
     ],
-    "userPoolGroupList": [],
+    "userPoolGroups": true,
+    "adminQueries": false,
+    "triggers": {},
+    "hostedUI": false,
+    "userPoolGroupList": [
+      "vaultauserpoolgroup"
+    ],
     "serviceName": "Cognito",
     "usernameCaseSensitive": false,
     "useEnabledMfas": true

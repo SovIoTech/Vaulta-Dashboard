@@ -11,6 +11,10 @@ import useDynamoDB from "./useDynamoDB.js";
 import "@aws-amplify/ui-react/styles.css";
 import LoadingSpinner from "./app/components/LoadingSpinner.js";
 
+// Add the `region` parameter to the `awsconfig` object
+awsconfig.region = awsconfig.aws_project_region;
+
+// Configure Amplify with the updated `awsconfig`
 Amplify.configure(awsconfig);
 
 function App() {
