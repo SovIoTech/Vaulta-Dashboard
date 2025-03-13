@@ -42,5 +42,6 @@
       "providerPlugin": "awscloudformation",
       "service": "Cognito-UserPool-Groups"
     }
-  }
+  },
+  "hosting": {}
 }
