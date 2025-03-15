@@ -8,37 +8,13 @@ import Cards from "./Cards.js";
 import Gauges from "./Gauges.js";
 import NodeTables from "./NodeTables.js";
 import LoadingSpinner from "./LoadingSpinner.js";
+import WeatherCard from "./WeatherCard.js"; // Import the WeatherCard component
 
 const Dashboard = ({ bmsData, signOut }) => {
   const [bmsState, setBmsState] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("cards"); // Track active tab
   const navigate = useNavigate();
-
-  const baseIds = [
-    "0x100",
-    "0x140",
-    "0x180",
-    "0x1C0",
-    "0x200",
-    "0x240",
-    "0x280",
-    "0x2C0",
-    "0x400",
-    "0x440",
-    "0x480",
-    "0x4C0",
-    "0x500",
-    "0x540",
-    "0x580",
-    "0x5C0",
-    "0x600",
-    "0x640",
-    "0x680",
-    "0x6C0",
-    "0x740",
-    "0x780",
-  ];
 
   useEffect(() => {
     console.log("bmsData:", bmsData);
@@ -208,7 +184,31 @@ const Dashboard = ({ bmsData, signOut }) => {
                   width: "100%",
                 }}
               >
-                <Gauges bmsState={bmsState} roundValue={roundValue} />
+                {/* Weather Card and Gauges */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "10px", // Reduced gap between items
+                    justifyContent: "space-between", // Align items properly
+                    width: "100%", // Ensure the container takes full width
+                  }}
+                >
+                  {/* WeatherCard with fixed width */}
+                  <div style={{ flex: "1 1 300px", maxWidth: "300px" }}>
+                    <WeatherCard city="Sydney" />
+                  </div>
+
+                  {/* Gauges with flexible width */}
+                  <div
+                    style={{
+                      flex: "2 1 600px",
+                      maxWidth: "calc(100% - 320px)",
+                    }}
+                  >
+                    <Gauges bmsState={bmsState} roundValue={roundValue} />
+                  </div>
+                </div>
               </div>
             </>
           ) : (

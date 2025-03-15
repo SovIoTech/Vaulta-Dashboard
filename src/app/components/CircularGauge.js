@@ -22,7 +22,7 @@ const CircularGauge = ({
   return (
     <div
       style={{
-        width: "250px", // Fixed width for consistency
+        width: "275px", // Fixed width for consistency
         height: "400px", // Fixed height for consistency
         border: "1px solid #e0e0e0", // CoreUI border color
         borderRadius: "8px", // CoreUI border radius
