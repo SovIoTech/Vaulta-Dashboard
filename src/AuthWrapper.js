@@ -42,7 +42,7 @@ const AuthWrapper = ({ children }) => {
           </div>
 
           {/* Main Content */}
-          {children}
+          {children({ user })}
         </div>
       )}
     </Authenticator>

@@ -61,6 +61,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
           marginBottom: "20px",
           fontSize: "1.2rem",
         }}
+        autoFocus={true} // Focus on the toggle button instead
       >
         {sidebarOpen ? "◀" : "▶"}
       </button>
@@ -148,7 +149,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
                   boxShadow: "0 2px 4px rgba(60, 75, 100, 0.4)", // Subtle shadow
                   transition: "background-color 0.3s ease",
                 }}
-                className="hover:bg-[#2c3a50]" // Darker hover effect
+                tabIndex="-1" // Prevent the button from being focusable
+                className="logout-button hover:bg-[#2c3a50]" // Add the class here
               >
                 🚪 Log Out
               </button>
@@ -195,6 +197,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
               padding: "10px",
               fontSize: "1.2rem",
             }}
+            tabIndex="-1" // Prevent the button from being focusable
           >
             🚪
           </button>
