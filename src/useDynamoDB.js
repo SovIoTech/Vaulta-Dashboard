@@ -5,7 +5,7 @@ import awsconfig from "./aws-exports.js";
 import { getLastMinuteData } from "./queries.js";
 
 const useDynamoDB = () => {
-  const [tableMetadata, setTableMetadata] = useState(null);
+  const [tableMetadata] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [userDetails, setUserDetails] = useState(null);
   const [data, setData] = useState(null);
@@ -56,7 +56,7 @@ const useDynamoDB = () => {
 
   const fetchTableMetadata = async (dynamoDB) => {
     try {
-      const params = { TableName: "CAN_BMS_Data" };
+      // const params = { TableName: "CAN_BMS_Data" };
       // const data = await dynamoDB.describeTable(params).promise();
       // setTableMetadata(data.Table);
     } catch (error) {

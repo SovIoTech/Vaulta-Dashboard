@@ -75,8 +75,8 @@ const Cards = ({ bmsState, roundValue }) => {
           color: "#FF9800",
         },
         {
-          label: "Node Count",
-          value: roundValue(bmsState.PackNodeCount?.N || 0),
+          label: "Carbon Offset (kg)",
+          value: roundValue(bmsState.Carbon_Offset_kg?.N || 0),
           icon: "#️⃣",
         },
       ],
