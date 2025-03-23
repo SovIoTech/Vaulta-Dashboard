@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Amplify } from "aws-amplify";
 import awsconfig from "./aws-exports.js";
 import AuthWrapper from "./AuthWrapper.js";
@@ -9,8 +9,8 @@ import Page3 from "./app/components/Page3.js"; // Import Page3
 import Page4 from "./app/components/Page4.js"; // Import Page4
 import Page5 from "./app/components/Page5.js"; // Import Page5
 import useDynamoDB from "./useDynamoDB.js";
+import { invokeLambdaFunction } from "./calc/lastmonthdata.js"; // Import the Lambda invoker function
 import "@aws-amplify/ui-react/styles.css";
-// import LoadingSpinner from "./app/components/LoadingSpinner.js";
 
 // Add the `region` parameter to the `awsconfig` object
 awsconfig.region = awsconfig.aws_project_region;
@@ -19,15 +19,42 @@ awsconfig.region = awsconfig.aws_project_region;
 Amplify.configure(awsconfig);
 
 function App() {
-  const { data, error } = useDynamoDB(); // Fetch data (user state is managed by AuthWrapper)
+  const { data: bmsData, error: dynamoError } = useDynamoDB(); // Fetch BMS data
+  const [lambdaResponse, setLambdaResponse] = useState(null); // State to store Lambda response
+  const [loading, setLoading] = useState(false); // Loading state for Lambda
+  const [lambdaError, setLambdaError] = useState(null); // Error state for Lambda
+
+  // Fetch Lambda data as soon as the user logs in
+  useEffect(() => {
+    const fetchLambdaData = async () => {
+      setLoading(true);
+      setLambdaError(null);
+
+      try {
+        // Invoke the Lambda function with a default or selected TagID
+        const response = await invokeLambdaFunction("0x440"); // Default TagID
+        setLambdaResponse(response); // Save the Lambda response
+      } catch (error) {
+        console.error("Error fetching Lambda data:", error);
+        setLambdaError("Failed to fetch Lambda data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Fetch Lambda data only if the user is logged in
+    if (bmsData) {
+      fetchLambdaData();
+    }
+  }, [bmsData]); // Trigger when BMS data is available (user is logged in)
 
   // Handle errors from useDynamoDB
-  React.useEffect(() => {
-    if (error) {
-      console.error("Error fetching data:", error);
+  useEffect(() => {
+    if (dynamoError) {
+      console.error("Error fetching BMS data:", dynamoError);
       // Optionally, display an error message to the user
     }
-  }, [error]);
+  }, [dynamoError]);
 
   // ProtectedRoute component to guard routes
   const ProtectedRoute = ({ children, user }) => {
@@ -61,7 +88,7 @@ function App() {
                 path="/dashboard"
                 element={
                   <ProtectedRoute user={user}>
-                    <Dashboard bmsData={data} />
+                    <Dashboard bmsData={bmsData} />
                   </ProtectedRoute>
                 }
               />
@@ -97,7 +124,7 @@ function App() {
                 path="/page5"
                 element={
                   <ProtectedRoute user={user}>
-                    <Page5 bmsData={data} />
+                    <Page5 bmsData={bmsData} lambdaResponse={lambdaResponse} />
                   </ProtectedRoute>
                 }
               />

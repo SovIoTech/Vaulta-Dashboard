@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -10,15 +10,7 @@ import {
   Legend,
 } from "chart.js";
 import Sidebar from "./Sidebar.js";
-import { invokeLambdaFunction } from "../../calc/lastmonthdata.js"; // Import the Lambda invoker function
-import { CCol, CRow, CWidgetStatsC } from "@coreui/react";
-import CIcon from "@coreui/icons-react";
-import {
-  cilChartPie,
-  cilBolt,
-  cibGrafana,
-  cilBatteryFull,
-} from "@coreui/icons";
+import { motion } from "framer-motion"; // For smooth transitions
 
 // Register Chart.js components
 ChartJS.register(
@@ -30,14 +22,18 @@ ChartJS.register(
   Legend
 );
 
-const Page5 = ({ signOut }) => {
+const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedTagId, setSelectedTagId] = useState("0x440"); // Default TagID
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(null); // Error state
-  const [lambdaResponse, setLambdaResponse] = useState(null); // State to store Lambda response
-  const [progressPercentage, setProgressPercentage] = useState(0); // Progress percentage
   const [activeSection, setActiveSection] = useState("keyInsights"); // Active section for single-page app
+  const [loading, setLoading] = useState(true); // Loading state
+
+  // Simulate loading delay (remove this in production)
+  useEffect(() => {
+    if (lambdaResponse && bmsData) {
+      setLoading(false); // Data is available, stop loading
+    }
+  }, [lambdaResponse, bmsData]);
 
   // List of TagIDs
   const baseIds = [
@@ -65,31 +61,11 @@ const Page5 = ({ signOut }) => {
     "0x780",
   ];
 
-  // Function to handle fetching data
-  const handleFetchData = async () => {
-    setLoading(true);
-    setError(null);
-    setProgressPercentage(0); // Reset progress
-
-    try {
-      // Invoke the Lambda function
-      const response = await invokeLambdaFunction(selectedTagId);
-
-      // Update state with the Lambda response
-      setLambdaResponse(response);
-
-      // Calculate progress percentage (example: assume 100% completion)
-      setProgressPercentage(100);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setError("Failed to fetch data. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const CardItem = ({ label, value, icon, color }) => (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
       style={{
         display: "flex",
         alignItems: "center",
@@ -116,7 +92,7 @@ const Page5 = ({ signOut }) => {
         <div style={{ color: "#666", fontSize: "14px" }}>{label}</div>
         <div style={{ fontWeight: "bold", fontSize: "16px" }}>{value}</div>
       </div>
-    </div>
+    </motion.div>
   );
 
   const KeyInsightsCard = ({ data }) => {
@@ -142,11 +118,20 @@ const Page5 = ({ signOut }) => {
     const totalChargingHours = chargingHours.length;
     const lastChargingEvent =
       chargingHours[chargingHours.length - 1]?.hour || "N/A";
-    const systemEfficiency =
-      (dailyPowerSummary.TotalPower /
-        (dailyPowerSummary.TotalPower + Math.abs(peakChargingPower))) *
-      100;
-    const carbonOffset = dailyPowerSummary.TotalPower * 0.0005; // Example calculation
+
+    const carbonOffset = parseFloat(
+      bmsData?.lastMinuteData[0]?.Carbon_Offset_kg.N || 0
+    );
+    const carbonOffsetValue = !isNaN(carbonOffset)
+      ? carbonOffset.toFixed(2)
+      : "0.00"; // Default to "0.00" if NaN
+
+    const systemHealth = parseFloat(
+      bmsData?.lastMinuteData[0]?.SOH_Estimate?.N || 0
+    );
+    const systemHealthValue = !isNaN(systemHealth)
+      ? systemHealth.toFixed(2)
+      : "0.00"; // Default to "0.00" if NaN
 
     const cardSections = [
       {
@@ -233,14 +218,14 @@ const Page5 = ({ signOut }) => {
         title: "System Health",
         items: [
           {
-            label: "System Efficiency",
-            value: `${systemEfficiency.toFixed(2)}%`,
+            label: "System Health (SOH)",
+            value: `${systemHealthValue}%`, // Use the safe value
             icon: "📉",
             color: "#F44336",
           },
           {
             label: "Carbon Offset",
-            value: `${carbonOffset.toFixed(2)} kg`,
+            value: `${carbonOffsetValue} kg`,
             icon: "🌍",
             color: "#4CAF50",
           },
@@ -249,7 +234,10 @@ const Page5 = ({ signOut }) => {
     ];
 
     return (
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
@@ -290,7 +278,7 @@ const Page5 = ({ signOut }) => {
             ))}
           </div>
         ))}
-      </div>
+      </motion.div>
     );
   };
 
@@ -300,7 +288,6 @@ const Page5 = ({ signOut }) => {
     // Combine currents and handle zero values
     const combinedData = last24Hours.map(([_, hour]) => {
       const value = hour.TotalCurrent;
-      // For zero values, use a minimal height (0.1) and black color
       return Math.abs(value) < 0.01
         ? { value: 0.1, color: "#000000" }
         : { value, color: value > 0 ? "#28a745" : "#dc3545" };
@@ -315,8 +302,8 @@ const Page5 = ({ signOut }) => {
           backgroundColor: combinedData.map((d) => d.color),
           borderColor: combinedData.map((d) => d.color),
           borderWidth: 1,
-          categoryPercentage: 1.0, // Full width for category
-          barPercentage: 0.9, // Full width for bars
+          categoryPercentage: 1.0,
+          barPercentage: 0.9,
         },
       ],
     };
@@ -324,13 +311,12 @@ const Page5 = ({ signOut }) => {
     const options = {
       scales: {
         y: {
-          beginAtZero: true, // Now starting at zero to show minimal bars
+          beginAtZero: true,
           grid: {
             color: "#e0e0e0",
           },
           ticks: {
             callback: function (value) {
-              // Hide tick for minimal zero bars
               return value === 0.1 ? "" : value;
             },
           },
@@ -363,7 +349,10 @@ const Page5 = ({ signOut }) => {
     };
 
     return (
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
         style={{
           backgroundColor: "#f9f9f9",
           padding: "20px",
@@ -380,14 +369,16 @@ const Page5 = ({ signOut }) => {
         <div style={{ height: "350px" }}>
           <Bar data={chartData} options={options} />
         </div>
-      </div>
+      </motion.div>
     );
   };
 
-  // Daily Power Summary Table
   const DailyPowerSummaryTable = ({ data }) => {
     return (
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
         style={{
           backgroundColor: "#f9f9f9",
           padding: "20px",
@@ -457,9 +448,39 @@ const Page5 = ({ signOut }) => {
             ))}
           </tbody>
         </table>
-      </div>
+      </motion.div>
     );
   };
+
+  // Loading Screen Component
+  const LoadingScreen = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        backgroundColor: "#ffffff",
+        color: "#1e1e2f",
+        fontFamily:
+          "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+      }}
+    >
+      <div style={{ textAlign: "center" }}>
+        <h2
+          style={{ fontSize: "24px", fontWeight: "700", marginBottom: "20px" }}
+        >
+          Please wait while your data is being processed...
+        </h2>
+        <p style={{ fontSize: "16px", color: "#666" }}>
+          It'll take just a moment to process the trends.
+        </p>
+      </div>
+    </motion.div>
+  );
 
   return (
     <div
@@ -485,229 +506,102 @@ const Page5 = ({ signOut }) => {
           maxWidth: "calc(100% - 80px)",
         }}
       >
-        <h1
-          style={{
-            fontSize: "24px",
-            fontWeight: "700",
-            color: "#1e1e2f",
-            marginBottom: "20px",
-          }}
-        >
-          Consumption Trends
-        </h1>
-
-        {/* TagID Dropdown */}
-        <div
-          style={{
-            backgroundColor: "#f9f9f9",
-            padding: "10px",
-            borderRadius: "12px",
-            boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-            marginBottom: "20px",
-          }}
-        >
-          <label
-            htmlFor="tagId"
-            style={{
-              fontSize: "14px",
-              color: "#666666",
-              marginBottom: "5px",
-              display: "block",
-            }}
-          >
-            Select TagID:
-          </label>
-          <select
-            id="tagId"
-            value={selectedTagId}
-            onChange={(e) => setSelectedTagId(e.target.value)}
-            style={{
-              padding: "8px 12px",
-              borderRadius: "8px",
-              border: "1px solid #e0e0e0",
-              width: "100%",
-              fontSize: "14px",
-              color: "#1e1e2f",
-              backgroundColor: "#ffffff",
-              cursor: "pointer",
-            }}
-          >
-            {baseIds.map((id) => (
-              <option key={id} value={id}>
-                {id}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Buttons to fetch data */}
-        <div
-          style={{
-            marginBottom: "20px",
-            textAlign: "center",
-            display: "flex",
-            gap: "10px",
-            justifyContent: "center",
-          }}
-        >
-          <button
-            onClick={handleFetchData}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#696cff",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "600",
-              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-              transition: "background-color 0.3s ease",
-            }}
-            disabled={loading}
-          >
-            {loading ? "Fetching Data..." : "Fetch Data"}
-          </button>
-        </div>
-
-        {/* Progress Bar and Progress Text */}
-        {progressPercentage < 100 && (
+        {loading ? (
+          <LoadingScreen />
+        ) : (
           <>
+            <h1
+              style={{
+                fontSize: "24px",
+                fontWeight: "700",
+                color: "#1e1e2f",
+                marginBottom: "20px",
+              }}
+            >
+              Consumption Trends
+            </h1>
+
+            {/* Navigation Buttons */}
             <div
               style={{
+                display: "flex",
+                gap: "10px",
                 marginBottom: "20px",
-                backgroundColor: "#e9ecef",
-                borderRadius: "8px",
-                overflow: "hidden",
+                justifyContent: "center",
               }}
             >
-              <div
+              <button
+                onClick={() => setActiveSection("keyInsights")}
                 style={{
-                  width: `${progressPercentage}%`,
-                  height: "10px",
-                  backgroundColor: "#696cff",
-                  transition: "width 0.3s ease",
+                  padding: "10px 20px",
+                  backgroundColor:
+                    activeSection === "keyInsights" ? "#696cff" : "#e9ecef",
+                  color: activeSection === "keyInsights" ? "white" : "#1e1e2f",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                  transition: "background-color 0.3s ease",
                 }}
-              />
+              >
+                Key Insights
+              </button>
+              <button
+                onClick={() => setActiveSection("hourlyAverages")}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor:
+                    activeSection === "hourlyAverages" ? "#696cff" : "#e9ecef",
+                  color:
+                    activeSection === "hourlyAverages" ? "white" : "#1e1e2f",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                  transition: "background-color 0.3s ease",
+                }}
+              >
+                Hourly Averages
+              </button>
+              <button
+                onClick={() => setActiveSection("dailySummary")}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor:
+                    activeSection === "dailySummary" ? "#696cff" : "#e9ecef",
+                  color: activeSection === "dailySummary" ? "white" : "#1e1e2f",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                  transition: "background-color 0.3s ease",
+                }}
+              >
+                Daily Summary
+              </button>
             </div>
 
-            {/* Display Progress */}
-            <p
-              style={{
-                fontSize: "14px",
-                color: "#666666",
-                textAlign: "center",
-              }}
-            >
-              Progress: {progressPercentage.toFixed(2)}%
-            </p>
+            {/* Display Lambda Response */}
+            {lambdaResponse && (
+              <div>
+                {activeSection === "keyInsights" && (
+                  <KeyInsightsCard data={lambdaResponse} />
+                )}
+                {activeSection === "hourlyAverages" && (
+                  <HourlyAveragesBarChart data={lambdaResponse} />
+                )}
+                {activeSection === "dailySummary" && (
+                  <DailyPowerSummaryTable data={lambdaResponse} />
+                )}
+              </div>
+            )}
           </>
-        )}
-
-        {/* Display Completion Message */}
-        {progressPercentage === 100 && (
-          <p
-            style={{
-              fontSize: "14px",
-              color: "#28a745",
-              textAlign: "center",
-            }}
-          >
-            Data fetch completed successfully!
-          </p>
-        )}
-
-        {/* Display Error */}
-        {error && (
-          <p
-            style={{
-              fontSize: "14px",
-              color: "#dc3545",
-              textAlign: "center",
-            }}
-          >
-            {error}
-          </p>
-        )}
-
-        {/* Navigation Buttons */}
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            marginBottom: "20px",
-            justifyContent: "center",
-          }}
-        >
-          <button
-            onClick={() => setActiveSection("keyInsights")}
-            style={{
-              padding: "10px 20px",
-              backgroundColor:
-                activeSection === "keyInsights" ? "#696cff" : "#e9ecef",
-              color: activeSection === "keyInsights" ? "white" : "#1e1e2f",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "600",
-              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-              transition: "background-color 0.3s ease",
-            }}
-          >
-            Key Insights
-          </button>
-          <button
-            onClick={() => setActiveSection("hourlyAverages")}
-            style={{
-              padding: "10px 20px",
-              backgroundColor:
-                activeSection === "hourlyAverages" ? "#696cff" : "#e9ecef",
-              color: activeSection === "hourlyAverages" ? "white" : "#1e1e2f",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "600",
-              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-              transition: "background-color 0.3s ease",
-            }}
-          >
-            Hourly Averages
-          </button>
-          <button
-            onClick={() => setActiveSection("dailySummary")}
-            style={{
-              padding: "10px 20px",
-              backgroundColor:
-                activeSection === "dailySummary" ? "#696cff" : "#e9ecef",
-              color: activeSection === "dailySummary" ? "white" : "#1e1e2f",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "600",
-              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-              transition: "background-color 0.3s ease",
-            }}
-          >
-            Daily Summary
-          </button>
-        </div>
-
-        {/* Display Lambda Response */}
-        {lambdaResponse && (
-          <div>
-            {activeSection === "keyInsights" && (
-              <KeyInsightsCard data={lambdaResponse} />
-            )}
-            {activeSection === "hourlyAverages" && (
-              <HourlyAveragesBarChart data={lambdaResponse} />
-            )}
-            {activeSection === "dailySummary" && (
-              <DailyPowerSummaryTable data={lambdaResponse} />
-            )}
-          </div>
         )}
       </div>
     </div>
