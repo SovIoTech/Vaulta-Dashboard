@@ -1,23 +1,35 @@
 import React from "react";
-import { signOut } from "aws-amplify/auth"; // Import the signOut function
-import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
+import { signOut } from "aws-amplify/auth";
+import { useNavigate } from "react-router-dom"; // Import useNavigate directly
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
+const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
+  const navigate = useNavigate(); // Use the useNavigate hook directly
+
   const menuItems = [
     {
       icon: "📊",
       label: "Dashboard",
-      onClick: () => navigate("/dashboard"), // Navigate to Dashboard
+      onClick: () => navigate("/dashboard"), // Use navigate directly
     },
     {
       icon: "📄",
       label: "Userpool",
-      onClick: () => navigate("/page2"), // Navigate to Page 2
+      onClick: () => navigate("/page2"), // Use navigate directly
     },
     {
       icon: "⚙️",
       label: "Settings",
-      onClick: () => navigate("/page3"), // Navigate to Page 3
+      onClick: () => navigate("/page3"), // Use navigate directly
+    },
+    {
+      icon: "📈", // Icon for Page 4
+      label: "Page 4",
+      onClick: () => navigate("/page4"), // Use navigate directly
+    },
+    {
+      icon: "📉", // Icon for Page 5
+      label: "Page 5",
+      onClick: () => navigate("/page5"), // Use navigate directly
     },
   ];
 
@@ -25,7 +37,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
   const handleSignOut = async () => {
     try {
       await signOut(); // Sign out the user
-      navigate("/login"); // Redirect to the login page after logout
+      navigate("/"); // Redirect to the login page after logout
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -94,7 +106,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
                 }}
               >
                 <button
-                  onClick={item.onClick}
+                  onClick={item.onClick} // Use the onClick handler directly
                   style={{
                     background: "none",
                     border: "none",
@@ -134,7 +146,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
               }}
             >
               <button
-                onClick={handleSignOut}
+                onClick={handleSignOut} // Use the handleSignOut function directly
                 style={{
                   background: "#3c4b64", // CoreUI's primary color
                   color: "#fff", // White text
@@ -169,7 +181,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
           {menuItems.map((item, index) => (
             <button
               key={index}
-              onClick={item.onClick}
+              onClick={item.onClick} // Use the onClick handler directly
               style={{
                 background: "none",
                 border: "none",
@@ -187,7 +199,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
           ))}
           {/* Collapsed Logout Icon */}
           <button
-            onClick={handleSignOut}
+            onClick={handleSignOut} // Use the handleSignOut function directly
             style={{
               background: "none",
               border: "none",

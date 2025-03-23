@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify"; // For popup notifications
 import "react-toastify/dist/ReactToastify.css"; // CSS for notifications
+import PropTypes from "prop-types"; // Add PropTypes for validation
 import Sidebar from "./Sidebar.js";
 import TopBanner from "./TopBanner.js";
 import Cards from "./Cards.js";
@@ -14,7 +14,6 @@ const Dashboard = ({ bmsData, signOut }) => {
   const [bmsState, setBmsState] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("cards"); // Track active tab
-  const navigate = useNavigate();
 
   useEffect(() => {
     console.log("bmsData:", bmsData);
@@ -31,6 +30,7 @@ const Dashboard = ({ bmsData, signOut }) => {
         "Backend returned null data. Displaying placeholder values.",
         {
           autoClose: 5000, // Popup disappears after 5 seconds
+          toastId: "null-data-warning", // Unique ID to prevent duplicate toasts
         }
       );
       setBmsState({}); // Set bmsState to an empty object to avoid crashes
@@ -97,7 +97,6 @@ const Dashboard = ({ bmsData, signOut }) => {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         signOut={signOut}
-        navigate={navigate}
       />
       <div
         style={{
@@ -229,6 +228,12 @@ const Dashboard = ({ bmsData, signOut }) => {
       </div>
     </div>
   );
+};
+
+// Add PropTypes for validation
+Dashboard.propTypes = {
+  bmsData: PropTypes.object,
+  signOut: PropTypes.func.isRequired,
 };
 
 export default Dashboard;

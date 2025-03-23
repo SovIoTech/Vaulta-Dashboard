@@ -2,22 +2,18 @@ import React, { useEffect, useState } from "react";
 import { FaSun, FaCloud, FaCloudRain, FaSnowflake } from "react-icons/fa";
 
 const WeatherCard = ({ city = "Sydney" }) => {
-  console.log("WeatherCard is rendering"); // Debugging
-
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Fetch weather data from OpenWeatherMap API
   useEffect(() => {
-    console.log("Fetching weather data..."); // Debugging
     const apiKey = "e56fb560ded28bd88a332ffe3594edaf";
     const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
 
     fetch(apiUrl)
       .then((response) => response.json())
       .then((data) => {
-        console.log("Weather data:", data); // Debugging
         if (data.cod === 200) {
           setWeatherData(data);
         } else {

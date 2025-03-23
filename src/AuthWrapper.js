@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Authenticator } from "@aws-amplify/ui-react";
 import { signOut } from "aws-amplify/auth"; // Import signOut function
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import "./AuthWrapper.css";
 
 const AuthWrapper = ({ children }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const navigate = useNavigate(); // Initialize the navigate function
 
   const toggleDropdown = () => {
     setDropdownOpen(!isDropdownOpen);
@@ -14,6 +16,7 @@ const AuthWrapper = ({ children }) => {
     try {
       await signOut(); // Use the signOut function
       console.log("User signed out successfully");
+      navigate("/"); // Redirect to the login page after sign-out
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -40,9 +43,8 @@ const AuthWrapper = ({ children }) => {
               )}
             </div>
           </div>
-
           {/* Main Content */}
-          {children({ user })}
+          {children({ user, navigate })} {/* Pass navigate to children */}
         </div>
       )}
     </Authenticator>

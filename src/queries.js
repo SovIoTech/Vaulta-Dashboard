@@ -112,3 +112,41 @@ export const getDataByTimestamp = async (
     throw error;
   }
 };
+
+export const getLastMonthData = async (dynamoDB, tableName, tagID) => {
+  const now = Math.floor(Date.now() / 1000); // Current time in Unix timestamp
+  const lastMonth = now - 30 * 24 * 60 * 60; // 30 days ago in Unix timestamp
+
+  const params = {
+    TableName: tableName,
+    KeyConditionExpression:
+      "#tagID = :tagID and #timestamp BETWEEN :lastMonth AND :now",
+    ExpressionAttributeNames: {
+      "#tagID": "TagID", // Alias for the 'TagID' key
+      "#timestamp": "Timestamp", // Alias for the reserved 'Timestamp' keyword
+    },
+    ExpressionAttributeValues: {
+      ":tagID": { S: tagID },
+      ":lastMonth": { N: lastMonth.toString() }, // Start of the last month
+      ":now": { N: now.toString() }, // Current time
+    },
+    ProjectionExpression:
+      "totalBattVoltage, totalLoadVoltage, totalCurrent, Timestamp", // Fetch only these attributes
+    ScanIndexForward: true, // Sort ascending by Timestamp
+  };
+
+  let allItems = [];
+  let lastEvaluatedKey = null;
+
+  do {
+    if (lastEvaluatedKey) {
+      params.ExclusiveStartKey = lastEvaluatedKey;
+    }
+
+    const data = await dynamoDB.query(params).promise();
+    allItems = allItems.concat(data.Items);
+    lastEvaluatedKey = data.LastEvaluatedKey;
+  } while (lastEvaluatedKey);
+
+  return allItems;
+};
