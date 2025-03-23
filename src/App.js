@@ -56,7 +56,6 @@ function App() {
                   )
                 }
               />
-
               {/* Dashboard route */}
               <Route
                 path="/dashboard"
@@ -66,7 +65,6 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-
               {/* Page2 route */}
               <Route
                 path="/page2"
@@ -76,7 +74,6 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-
               {/* Page3 route */}
               <Route
                 path="/page3"
@@ -86,7 +83,6 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-
               {/* Page4 route */}
               <Route
                 path="/page4"
@@ -96,17 +92,15 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-
               {/* Page5 route */}
               <Route
                 path="/page5"
                 element={
                   <ProtectedRoute user={user}>
-                    <Page5 />
+                    <Page5 bmsData={data} />
                   </ProtectedRoute>
                 }
               />
-
               {/* Fallback route for unmatched paths */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
