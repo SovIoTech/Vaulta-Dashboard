@@ -28,7 +28,7 @@ const AuthWrapper = ({ children }) => {
         <div className="auth-container">
           {/* Top Bar */}
           <div className="top-bar">
-            <div className="logo">JD-Vaulta</div>
+            <div className="logo">Vaulta Battery Management System </div>
             <div className="user-menu">
               <button onClick={toggleDropdown} className="user-button">
                 {user?.username} ▼

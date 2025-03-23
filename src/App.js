@@ -1,4 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { Amplify } from "aws-amplify";
 import awsconfig from "./aws-exports.js";
@@ -11,12 +17,177 @@ import Page5 from "./app/components/Page5.js"; // Import Page5
 import useDynamoDB from "./useDynamoDB.js";
 import { invokeLambdaFunction } from "./calc/lastmonthdata.js"; // Import the Lambda invoker function
 import "@aws-amplify/ui-react/styles.css";
+import { AnimatePresence, motion } from "framer-motion"; // For smooth transitions
 
 // Add the `region` parameter to the `awsconfig` object
 awsconfig.region = awsconfig.aws_project_region;
 
 // Configure Amplify with the updated `awsconfig`
 Amplify.configure(awsconfig);
+
+// Create a new component to handle the routes and animations
+const AnimatedRoutes = ({ bmsData, lambdaResponse, user }) => {
+  const location = useLocation(); // useLocation is now inside the Router context
+
+  const pageVariants = {
+    initial: {
+      opacity: 0,
+      x: -100,
+    },
+    animate: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 20,
+        duration: 0.1,
+      },
+    },
+    exit: {
+      opacity: 0,
+      x: 100,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 20,
+        duration: 0.1,
+      },
+    },
+  };
+  // ProtectedRoute component to guard routes
+  const ProtectedRoute = ({ children }) => {
+    if (!user) {
+      return <Navigate to="/" replace />; // Redirect to login if not authenticated
+    }
+    return children;
+  };
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* Default route (login/sign-up) */}
+        <Route
+          path="/"
+          element={
+            !user ? (
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <p>Please sign in to access the dashboard.</p>
+              </motion.div>
+            ) : (
+              <Navigate to="/dashboard" replace />
+            )
+          }
+        />
+
+        {/* Dashboard route */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <Dashboard bmsData={bmsData} />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Page2 route */}
+        <Route
+          path="/page2"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <Page2 />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Page3 route */}
+        <Route
+          path="/page3"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <Page3 />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Page4 route */}
+        <Route
+          path="/page4"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <Page4 />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Page5 route */}
+        <Route
+          path="/page5"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <Page5 bmsData={bmsData} lambdaResponse={lambdaResponse} />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallback route for unmatched paths */}
+        <Route
+          path="*"
+          element={
+            <motion.div
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              <Navigate to="/" replace />
+            </motion.div>
+          }
+        />
+      </Routes>
+    </AnimatePresence>
+  );
+};
 
 function App() {
   const { data: bmsData, error: dynamoError } = useDynamoDB(); // Fetch BMS data
@@ -56,82 +227,15 @@ function App() {
     }
   }, [dynamoError]);
 
-  // ProtectedRoute component to guard routes
-  const ProtectedRoute = ({ children, user }) => {
-    if (!user) {
-      return <Navigate to="/" replace />; // Redirect to login if not authenticated
-    }
-    return children;
-  };
-
   return (
     <BrowserRouter>
       <AuthWrapper>
-        {(
-          { user, navigate } // Destructure navigate from AuthWrapper
-        ) => (
-          <>
-            <Routes>
-              {/* Default route (login/sign-up) */}
-              <Route
-                path="/"
-                element={
-                  !user ? (
-                    <p>Please sign in to access the dashboard.</p>
-                  ) : (
-                    <Navigate to="/dashboard" replace />
-                  )
-                }
-              />
-              {/* Dashboard route */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute user={user}>
-                    <Dashboard bmsData={bmsData} />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Page2 route */}
-              <Route
-                path="/page2"
-                element={
-                  <ProtectedRoute user={user}>
-                    <Page2 />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Page3 route */}
-              <Route
-                path="/page3"
-                element={
-                  <ProtectedRoute user={user}>
-                    <Page3 />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Page4 route */}
-              <Route
-                path="/page4"
-                element={
-                  <ProtectedRoute user={user}>
-                    <Page4 />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Page5 route */}
-              <Route
-                path="/page5"
-                element={
-                  <ProtectedRoute user={user}>
-                    <Page5 bmsData={bmsData} lambdaResponse={lambdaResponse} />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Fallback route for unmatched paths */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </>
+        {({ user }) => (
+          <AnimatedRoutes
+            bmsData={bmsData}
+            lambdaResponse={lambdaResponse}
+            user={user}
+          />
         )}
       </AuthWrapper>
     </BrowserRouter>
