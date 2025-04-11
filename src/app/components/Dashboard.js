@@ -87,9 +87,9 @@ const Dashboard = ({ bmsData, signOut }) => {
       style={{
         display: "flex",
         minHeight: "100vh",
-        backgroundColor: "#f8f9fa", // CoreUI's light background color
+        backgroundColor: "#f2f2f2", // OneUI light background color
         fontFamily:
-          "Public Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+          "SamsungOne, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
       }}
     >
       <ToastContainer /> {/* For displaying popup notifications */}
@@ -102,9 +102,9 @@ const Dashboard = ({ bmsData, signOut }) => {
         style={{
           flex: 1,
           padding: "20px",
-          backgroundColor: "#f8f9fa", // CoreUI's light background color
+          backgroundColor: "#f2f2f2", // OneUI light background color
           maxWidth: "calc(100% - 80px)",
-          overflow: "hidden", // Prevent vertical scrolling
+          overflow: "auto", // Allow vertical scrolling if needed
         }}
       >
         <TopBanner bmsState={bmsState} />
@@ -122,30 +122,32 @@ const Dashboard = ({ bmsData, signOut }) => {
             style={{
               margin: "0 10px",
               padding: "10px 20px",
-              backgroundColor: activeTab === "cards" ? "#3c4b64" : "#f8f9fa",
-              color: activeTab === "cards" ? "#fff" : "#4f5d73",
+              backgroundColor: activeTab === "cards" ? "#1259c3" : "#ffffff",
+              color: activeTab === "cards" ? "#fff" : "#000000",
               border: "none",
-              borderRadius: "8px",
+              borderRadius: "25px", // Rounded corners for OneUI
               cursor: "pointer",
               fontWeight: "600",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
             }}
           >
-            Cards & Gauges
+            System Overview
           </button>
           <button
             onClick={() => setActiveTab("tables")}
             style={{
               margin: "0 10px",
               padding: "10px 20px",
-              backgroundColor: activeTab === "tables" ? "#3c4b64" : "#f8f9fa",
-              color: activeTab === "tables" ? "#fff" : "#4f5d73",
+              backgroundColor: activeTab === "tables" ? "#1259c3" : "#ffffff",
+              color: activeTab === "tables" ? "#fff" : "#000000",
               border: "none",
-              borderRadius: "8px",
+              borderRadius: "25px", // Rounded corners for OneUI
               cursor: "pointer",
               fontWeight: "600",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
             }}
           >
-            Tables
+            Detailed Data
           </button>
         </div>
 
@@ -163,13 +165,23 @@ const Dashboard = ({ bmsData, signOut }) => {
               <div
                 style={{
                   backgroundColor: "#fff", // White background for cards
-                  borderRadius: "8px",
+                  borderRadius: "15px", // Rounded corners for OneUI
                   padding: "20px",
                   boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
                   marginBottom: "20px",
                   width: "100%",
                 }}
               >
+                <h2
+                  style={{
+                    color: "#1259c3",
+                    marginBottom: "15px",
+                    fontWeight: "600",
+                    fontSize: "1.5rem",
+                  }}
+                >
+                  Battery Status
+                </h2>
                 <Cards bmsState={bmsState} roundValue={roundValue} />
               </div>
 
@@ -177,12 +189,22 @@ const Dashboard = ({ bmsData, signOut }) => {
               <div
                 style={{
                   backgroundColor: "#fff", // White background for gauges
-                  borderRadius: "8px",
+                  borderRadius: "15px", // Rounded corners for OneUI
                   padding: "20px",
                   boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
                   width: "100%",
                 }}
               >
+                <h2
+                  style={{
+                    color: "#1259c3",
+                    marginBottom: "15px",
+                    fontWeight: "600",
+                    fontSize: "1.5rem",
+                  }}
+                >
+                  System Metrics
+                </h2>
                 {/* Weather Card and Gauges */}
                 <div
                   style={{
@@ -215,12 +237,22 @@ const Dashboard = ({ bmsData, signOut }) => {
             <div
               style={{
                 backgroundColor: "#fff", // White background for tables
-                borderRadius: "8px",
+                borderRadius: "15px", // Rounded corners for OneUI
                 padding: "20px",
                 boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
                 width: "100%",
               }}
             >
+              <h2
+                style={{
+                  color: "#1259c3",
+                  marginBottom: "15px",
+                  fontWeight: "600",
+                  fontSize: "1.5rem",
+                }}
+              >
+                Cell & Temperature Data
+              </h2>
               <NodeTables nodeData={nodeData} />
             </div>
           )}

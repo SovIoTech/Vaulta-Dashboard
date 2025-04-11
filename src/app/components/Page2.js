@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar.js";
 import { listUsers, updateUserRole } from "./cognito-users.js"; // Import listUsers and updateUserRole
+import LoadingSpinner from "./LoadingSpinner.js";
 
 const Page2 = ({ signOut }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -54,14 +55,18 @@ const Page2 = ({ signOut }) => {
     }
   };
 
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <div
       style={{
         display: "flex",
         minHeight: "100vh",
-        backgroundColor: "#f5f5f9",
+        backgroundColor: "#f2f2f2", // OneUI light background
         fontFamily:
-          "Public Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+          "SamsungOne, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
       }}
     >
       <Sidebar
@@ -74,27 +79,44 @@ const Page2 = ({ signOut }) => {
         style={{
           flex: 1,
           padding: "20px",
-          backgroundColor: "#f5f5f9",
+          backgroundColor: "#f2f2f2", // OneUI light background
           maxWidth: "calc(100% - 80px)",
         }}
       >
-        <h1>Cognito Users</h1>
-        {loading ? (
-          <p>Loading users...</p>
-        ) : (
+        <div
+          style={{
+            backgroundColor: "white",
+            padding: "20px",
+            borderRadius: "15px", // Rounded corners for OneUI
+            boxShadow: "0 2px 10px rgba(0,0,0,0.08)", // OneUI shadow
+            marginBottom: "20px",
+          }}
+        >
+          <h1
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: "600",
+              color: "#1259c3", // OneUI blue
+              marginBottom: "20px",
+            }}
+          >
+            User Management
+          </h1>
+
           <table
             style={{
               width: "100%",
               borderCollapse: "collapse",
               backgroundColor: "white",
-              borderRadius: "8px",
-              boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
+              borderRadius: "15px", // Rounded corners for OneUI
+              overflow: "hidden",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
             }}
           >
             <thead>
               <tr
                 style={{
-                  backgroundColor: "#696cff",
+                  backgroundColor: "#1259c3", // OneUI blue
                   color: "white",
                   textAlign: "left",
                 }}
@@ -111,7 +133,7 @@ const Page2 = ({ signOut }) => {
                 <tr
                   key={index}
                   style={{
-                    borderBottom: "1px solid #e0e0e0",
+                    borderBottom: "1px solid #e6e6e6",
                     backgroundColor: index % 2 === 0 ? "#f9f9f9" : "white",
                   }}
                 >
@@ -130,22 +152,23 @@ const Page2 = ({ signOut }) => {
                         handleRoleUpdate(user.Username, e.target.value)
                       }
                       style={{
-                        padding: "6px 12px",
-                        borderRadius: "4px",
-                        border: "1px solid #ccc",
+                        padding: "8px 12px",
+                        borderRadius: "25px", // Rounded corners for OneUI
+                        border: "1px solid #e6e6e6",
                         backgroundColor: "white",
                         cursor: "pointer",
+                        color: "#000000", // OneUI text color
                       }}
                     >
-                      <option value="admin">Admin</option>
-                      <option value="client">Client</option>
+                      <option value="admin">Administrator</option>
+                      <option value="client">Standard User</option>
                     </select>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
+        </div>
       </div>
     </div>
   );

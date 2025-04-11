@@ -15,20 +15,20 @@ const CircularGauge = ({
   // Calculate percentage for visualization
   const percentage = ((value - min) / (max - min)) * 100;
 
-  // Dynamic colors for percentage
+  // Dynamic colors for percentage - using OneUI colors
   const gaugeColor =
-    percentage > 70 ? "#28a745" : percentage > 40 ? "#ffc107" : "#dc3545";
+    percentage > 70 ? "#4CAF50" : percentage > 40 ? "#FF9800" : "#F44336";
 
   return (
     <div
       style={{
         width: "275px", // Fixed width for consistency
         height: "400px", // Fixed height for consistency
-        border: "1px solid #e0e0e0", // CoreUI border color
-        borderRadius: "8px", // CoreUI border radius
+        border: "1px solid #e6e6e6", // Light border
+        borderRadius: "15px", // Rounded corners for OneUI
         padding: "20px",
-        background: "#fff", // CoreUI background color
-        boxShadow: "0 4px 6px rgba(0,0,0,0.05)", // CoreUI shadow
+        background: "#fff", // White background
+        boxShadow: "0 2px 10px rgba(0,0,0,0.08)", // OneUI shadow
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -38,9 +38,9 @@ const CircularGauge = ({
       {/* Title */}
       <h3
         style={{
-          fontSize: "1.25rem", // CoreUI font size
-          fontWeight: "600", // CoreUI font weight
-          color: "#3c4b64", // CoreUI primary text color
+          fontSize: "1.25rem",
+          fontWeight: "600",
+          color: "#1259c3", // OneUI blue
           textAlign: "center",
           marginBottom: "10px",
         }}
@@ -52,8 +52,8 @@ const CircularGauge = ({
       {description && (
         <p
           style={{
-            fontSize: "0.9rem", // CoreUI font size
-            color: "#6c757d", // CoreUI secondary text color
+            fontSize: "0.9rem",
+            color: "#757575", // Gray text
             textAlign: "center",
             marginBottom: "15px",
           }}
@@ -65,8 +65,8 @@ const CircularGauge = ({
       {/* Min Value */}
       <div
         style={{
-          fontSize: "0.9rem", // CoreUI font size
-          color: "#6c757d", // CoreUI secondary text color
+          fontSize: "0.9rem",
+          color: "#757575", // Gray text
           textAlign: "center",
         }}
         title="Minimum Value"
@@ -90,8 +90,9 @@ const CircularGauge = ({
           text={`${value} ${unit}`} // Display actual value and unit
           styles={buildStyles({
             pathColor: gaugeColor, // Dynamic color based on percentage
-            textColor: "#3c4b64", // CoreUI primary text color
+            textColor: "#1259c3", // OneUI blue
             textSize: "16px", // Adjusted text size
+            trailColor: "#f2f2f2", // OneUI light background
           })}
         />
       </div>
@@ -100,29 +101,29 @@ const CircularGauge = ({
       <div style={{ textAlign: "center", marginBottom: "10px" }}>
         <div
           style={{
-            fontSize: "1rem", // CoreUI font size
-            fontWeight: "600", // CoreUI font weight
-            color: "#3c4b64", // CoreUI primary text color
+            fontSize: "1rem",
+            fontWeight: "600",
+            color: "#1259c3", // OneUI blue
           }}
         >
-          Delta
+          Change
         </div>
         <div
           style={{
-            fontSize: "0.9rem", // CoreUI font size
-            color: percentageChange > 0 ? "#28a745" : "#dc3545", // Dynamic color
+            fontSize: "0.9rem",
+            color: percentageChange > 0 ? "#4CAF50" : "#F44336", // Green or Red
             fontWeight: "500",
           }}
           title="Percentage Change"
         >
           {percentageChange > 0 ? (
             <>
-              <FaArrowUp style={{ color: "#28a745" }} />{" "}
+              <FaArrowUp style={{ color: "#4CAF50" }} />{" "}
               {percentageChange.toFixed(2)}%
             </>
           ) : (
             <>
-              <FaArrowDown style={{ color: "#dc3545" }} />{" "}
+              <FaArrowDown style={{ color: "#F44336" }} />{" "}
               {Math.abs(percentageChange).toFixed(2)}%
             </>
           )}
@@ -132,8 +133,8 @@ const CircularGauge = ({
       {/* Max Value */}
       <div
         style={{
-          fontSize: "0.9rem", // CoreUI font size
-          color: "#6c757d", // CoreUI secondary text color
+          fontSize: "0.9rem",
+          color: "#757575", // Gray text
           textAlign: "center",
         }}
         title="Maximum Value"

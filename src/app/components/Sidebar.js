@@ -1,6 +1,6 @@
 import React from "react";
 import { signOut } from "aws-amplify/auth";
-import { useNavigate } from "react-router-dom"; // Import useNavigate directly
+import { useNavigate } from "react-router-dom";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const navigate = useNavigate(); // Use the useNavigate hook directly
@@ -9,27 +9,27 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     {
       icon: "📊",
       label: "Dashboard",
-      onClick: () => navigate("/dashboard"), // Use navigate directly
+      onClick: () => navigate("/dashboard"),
     },
     {
-      icon: "📄",
-      label: "Userpool",
-      onClick: () => navigate("/page2"), // Use navigate directly
+      icon: "👥",
+      label: "User Management",
+      onClick: () => navigate("/page2"),
+    },
+    {
+      icon: "📈",
+      label: "Data Analytics",
+      onClick: () => navigate("/page3"),
     },
     {
       icon: "⚙️",
-      label: "Settings",
-      onClick: () => navigate("/page3"), // Use navigate directly
+      label: "System Settings",
+      onClick: () => navigate("/page4"),
     },
     {
-      icon: "📈", // Icon for Page 4
-      label: "Page 4",
-      onClick: () => navigate("/page4"), // Use navigate directly
-    },
-    {
-      icon: "📉", // Icon for Page 5
-      label: "Page 5",
-      onClick: () => navigate("/page5"), // Use navigate directly
+      icon: "🔋",
+      label: "Energy Monitor",
+      onClick: () => navigate("/page5"),
     },
   ];
 
@@ -47,17 +47,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     <div
       style={{
         width: sidebarOpen ? "250px" : "80px",
-        backgroundColor: "#fff", // CoreUI uses white background
-        color: "#4f5d73", // CoreUI's default text color
+        backgroundColor: "#fff", // White background
+        color: "#000000", // OneUI default text color
         transition: "width 0.3s ease",
         padding: "20px 0",
         position: "sticky",
         top: 0,
         height: "100vh",
-        borderRight: "1px solid #e0e0e0", // Light border for separation
+        borderRight: "1px solid #e6e6e6", // Light border for separation
         boxShadow: "2px 0 4px rgba(0,0,0,0.05)",
         display: "flex",
         flexDirection: "column",
+        zIndex: 100,
       }}
     >
       {/* Toggle Button */}
@@ -66,14 +67,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         style={{
           background: "none",
           border: "none",
-          color: "#3c4b64", // CoreUI's primary text color
+          color: "#1259c3", // OneUI primary blue color
           cursor: "pointer",
           alignSelf: "flex-end",
           marginRight: "15px",
           marginBottom: "20px",
           fontSize: "1.2rem",
         }}
-        autoFocus={true} // Focus on the toggle button instead
+        autoFocus={true}
       >
         {sidebarOpen ? "◀" : "▶"}
       </button>
@@ -85,14 +86,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             style={{
               marginTop: "10px",
               marginBottom: "20px",
-              color: "#3c4b64", // CoreUI's primary text color
+              color: "#1259c3", // OneUI primary blue color
               fontWeight: "600",
               paddingLeft: "20px",
               textTransform: "uppercase",
               fontSize: "0.9rem",
             }}
           >
-            Main Menu
+            Menu
           </h3>
 
           {/* Menu Items */}
@@ -106,26 +107,26 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 }}
               >
                 <button
-                  onClick={item.onClick} // Use the onClick handler directly
+                  onClick={item.onClick}
                   style={{
                     background: "none",
                     border: "none",
-                    color: "#4f5d73", // CoreUI's default text color
+                    color: "#000000", // OneUI default text color
                     cursor: "pointer",
                     fontSize: "1rem",
                     display: "flex",
                     alignItems: "center",
                     width: "100%",
                     padding: "10px",
-                    borderRadius: "8px",
+                    borderRadius: "25px", // Rounded corners for OneUI
                     transition: "background-color 0.2s ease",
                   }}
-                  className="hover:bg-[#f0f2f5]" // Light hover effect
+                  className="hover:bg-[#f2f2f2]" // Light hover effect - OneUI color
                 >
                   <span
                     style={{
                       marginRight: "12px",
-                      color: "#3c4b64", // CoreUI's primary text color
+                      color: "#1259c3", // OneUI primary blue color
                       display: "flex",
                       alignItems: "center",
                     }}
@@ -146,9 +147,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               }}
             >
               <button
-                onClick={handleSignOut} // Use the handleSignOut function directly
+                onClick={handleSignOut}
                 style={{
-                  background: "#3c4b64", // CoreUI's primary color
+                  background: "#1259c3", // OneUI primary blue color
                   color: "#fff", // White text
                   border: "none",
                   cursor: "pointer",
@@ -157,14 +158,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   alignItems: "center",
                   width: "calc(100% - 40px)",
                   padding: "10px",
-                  borderRadius: "8px",
-                  boxShadow: "0 2px 4px rgba(60, 75, 100, 0.4)", // Subtle shadow
+                  borderRadius: "25px", // Rounded corners for OneUI
+                  boxShadow: "0 2px 4px rgba(18, 89, 195, 0.4)", // Subtle shadow
                   transition: "background-color 0.3s ease",
                 }}
                 tabIndex="-1" // Prevent the button from being focusable
-                className="logout-button hover:bg-[#2c3a50]" // Add the class here
+                className="logout-button hover:bg-[#0c3f82]" // Add the class here
               >
-                🚪 Log Out
+                🚪 Sign Out
               </button>
             </li>
           </ul>
@@ -181,13 +182,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           {menuItems.map((item, index) => (
             <button
               key={index}
-              onClick={item.onClick} // Use the onClick handler directly
+              onClick={item.onClick}
               style={{
                 background: "none",
                 border: "none",
-                color: "#4f5d73", // CoreUI's default text color
+                color: "#1259c3", // OneUI primary blue color
                 cursor: "pointer",
-                padding: "10px",
+                padding: "15px",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -199,14 +200,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           ))}
           {/* Collapsed Logout Icon */}
           <button
-            onClick={handleSignOut} // Use the handleSignOut function directly
+            onClick={handleSignOut}
             style={{
               background: "none",
               border: "none",
-              color: "#3c4b64", // CoreUI's primary text color
+              color: "#1259c3", // OneUI primary blue color
               cursor: "pointer",
               marginTop: "auto",
-              padding: "10px",
+              padding: "15px",
               fontSize: "1.2rem",
             }}
             tabIndex="-1" // Prevent the button from being focusable

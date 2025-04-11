@@ -11,6 +11,8 @@ import {
 } from "chart.js";
 import Sidebar from "./Sidebar.js";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import LoadingSpinner from "./LoadingSpinner.js";
 
 // Register Chart.js components
 ChartJS.register(
@@ -26,6 +28,7 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("keyInsights");
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (lambdaResponse && bmsData) {
@@ -81,12 +84,12 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
       style={{
         display: "flex",
         alignItems: "center",
-        border: "1px solid #ddd",
-        borderRadius: "10px",
+        border: "1px solid #e6e6e6",
+        borderRadius: "15px", // Rounded corners for OneUI
         padding: "15px",
         margin: "10px 0",
-        backgroundColor: "#f9f9f9",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+        backgroundColor: "#fff",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
       }}
     >
       {icon && (
@@ -95,13 +98,15 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
         </div>
       )}
       <div>
-        <div style={{ color: "#666", fontSize: "14px" }}>{label}</div>
-        <div style={{ fontWeight: "bold", fontSize: "16px" }}>{value}</div>
+        <div style={{ color: "#757575", fontSize: "14px" }}>{label}</div>
+        <div style={{ fontWeight: "bold", fontSize: "16px", color: "#000000" }}>
+          {value}
+        </div>
       </div>
     </motion.div>
   );
 
-  // Key Insights Component (with all original metrics)
+  // Key Insights Component
   const KeyInsightsCard = () => {
     const latestHour = getLatestHourData();
     const last24Hours = getLast24Hours();
@@ -158,19 +163,19 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
             label: "Total Power Consumed",
             value: metrics.totalPowerConsumed,
             icon: "⚡",
-            color: "#2196F3",
+            color: "#1259c3", // OneUI blue
           },
           {
             label: "Average Power Consumption",
             value: metrics.avgPowerConsumption,
             icon: "📊",
-            color: "#4CAF50",
+            color: "#4CAF50", // Green
           },
           {
             label: "Positive Hours",
             value: metrics.positiveHours,
             icon: "⏱️",
-            color: "#FF9800",
+            color: "#FF9800", // Orange
           },
         ],
       },
@@ -181,13 +186,13 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
             label: "Peak Power Consumption",
             value: metrics.peakPowerConsumption,
             icon: "📈",
-            color: "#F44336",
+            color: "#F44336", // Red
           },
           {
             label: "Peak Charging Power",
             value: metrics.peakChargingPower,
             icon: "🔋",
-            color: "#9C27B0",
+            color: "#1259c3", // OneUI blue
           },
           {
             label: "Current Power Status",
@@ -195,8 +200,8 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
             icon: metrics.currentPowerStatus === "Consuming" ? "🔌" : "🔋",
             color:
               metrics.currentPowerStatus === "Consuming"
-                ? "#FF9800"
-                : "#4CAF50",
+                ? "#FF9800" // Orange
+                : "#4CAF50", // Green
           },
         ],
       },
@@ -207,13 +212,13 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
             label: "Avg Battery Voltage",
             value: metrics.avgBatteryVoltage,
             icon: "🔋",
-            color: "#2196F3",
+            color: "#1259c3", // OneUI blue
           },
           {
             label: "Avg Load Voltage",
             value: metrics.avgLoadVoltage,
             icon: "🔌",
-            color: "#4CAF50",
+            color: "#4CAF50", // Green
           },
         ],
       },
@@ -224,30 +229,30 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
             label: "Total Charging Hours",
             value: metrics.totalChargingHours,
             icon: "⏳",
-            color: "#9C27B0",
+            color: "#1259c3", // OneUI blue
           },
           {
             label: "Last Charging Event",
             value: metrics.lastChargingEvent,
             icon: "🔋",
-            color: "#FF9800",
+            color: "#FF9800", // Orange
           },
         ],
       },
       {
-        title: "System Health",
+        title: "Environmental Impact",
         items: [
           {
             label: "System Health (SOH)",
             value: metrics.systemHealth,
             icon: "📉",
-            color: "#F44336",
+            color: "#F44336", // Red
           },
           {
             label: "Carbon Offset",
             value: metrics.carbonOffset,
             icon: "🌍",
-            color: "#4CAF50",
+            color: "#4CAF50", // Green
           },
         ],
       },
@@ -270,12 +275,20 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
             key={index}
             style={{
               background: "#fff",
-              borderRadius: "10px",
-              boxShadow: "0px 10px 30px rgba(0, 0, 0, 0.1)",
+              borderRadius: "15px", // Rounded corners for OneUI
+              boxShadow: "0 2px 10px rgba(0, 0, 0, 0.08)", // OneUI shadow
               padding: "20px",
             }}
           >
-            <h3 style={{ fontWeight: "bold", marginBottom: "15px" }}>
+            <h3
+              style={{
+                fontWeight: "600",
+                marginBottom: "15px",
+                color: "#1259c3", // OneUI blue
+                borderBottom: "2px solid #f2f2f2",
+                paddingBottom: "10px",
+              }}
+            >
               {section.title}
             </h3>
             {section.items.map((item, i) => (
@@ -303,8 +316,8 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
         {
           label: "Current (A)",
           data: last24Hours.map((h) => h.TotalCurrent),
-          backgroundColor: last24Hours.map((h) =>
-            h.TotalCurrent > 0 ? "#28a745" : "#dc3545"
+          backgroundColor: last24Hours.map(
+            (h) => (h.TotalCurrent > 0 ? "#4CAF50" : "#F44336") // Green for positive, red for negative
           ),
           borderWidth: 1,
         },
@@ -318,12 +331,20 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
         y: {
           beginAtZero: true,
           grid: {
-            color: "#e0e0e0",
+            color: "#e6e6e6", // Lighter grid lines
+          },
+          ticks: {
+            color: "#757575", // OneUI gray text
           },
         },
         x: {
           grid: {
             display: false,
+          },
+          ticks: {
+            color: "#757575", // OneUI gray text
+            autoSkip: false,
+            maxRotation: 0,
           },
         },
       },
@@ -332,6 +353,11 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
           display: false,
         },
         tooltip: {
+          backgroundColor: "#fff",
+          titleColor: "#000000",
+          bodyColor: "#000000",
+          borderColor: "#e6e6e6",
+          borderWidth: 1,
           callbacks: {
             label: (context) => `Current: ${context.raw.toFixed(2)}A`,
           },
@@ -345,15 +371,23 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         style={{
-          backgroundColor: "#f9f9f9",
+          backgroundColor: "#fff",
           padding: "20px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+          borderRadius: "15px", // Rounded corners for OneUI
+          boxShadow: "0 2px 10px rgba(0,0,0,0.08)", // OneUI shadow
           marginBottom: "20px",
           height: "400px",
         }}
       >
-        <h3 style={{ marginBottom: "15px" }}>Hourly Current (Last 24 Hours)</h3>
+        <h3
+          style={{
+            marginBottom: "15px",
+            color: "#1259c3",
+            fontWeight: "600",
+          }}
+        >
+          Hourly Current (Last 24 Hours)
+        </h3>
         <div style={{ height: "350px" }}>
           <Bar data={chartData} options={options} />
         </div>
@@ -371,55 +405,69 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         style={{
-          backgroundColor: "#f9f9f9",
+          backgroundColor: "#fff",
           padding: "20px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+          borderRadius: "15px", // Rounded corners for OneUI
+          boxShadow: "0 2px 10px rgba(0,0,0,0.08)", // OneUI shadow
         }}
       >
-        <h3 style={{ marginBottom: "15px" }}>Daily Power Summary</h3>
+        <h3
+          style={{
+            marginBottom: "15px",
+            color: "#1259c3",
+            fontWeight: "600",
+          }}
+        >
+          Daily Power Summary
+        </h3>
         <div style={{ overflowX: "auto" }}>
           <table
             style={{
               width: "100%",
               borderCollapse: "collapse",
               minWidth: "600px",
+              borderRadius: "10px",
+              overflow: "hidden",
             }}
           >
             <thead>
-              <tr>
+              <tr style={{ backgroundColor: "#f2f2f2" }}>
                 <th
                   style={{
-                    padding: "10px",
+                    padding: "12px",
                     textAlign: "left",
-                    borderBottom: "1px solid #e0e0e0",
+                    borderBottom: "1px solid #e6e6e6",
+                    color: "#000000",
                   }}
                 >
                   Date
                 </th>
                 <th
                   style={{
-                    padding: "10px",
+                    padding: "12px",
                     textAlign: "left",
-                    borderBottom: "1px solid #e0e0e0",
+                    borderBottom: "1px solid #e6e6e6",
+                    color: "#000000",
                   }}
                 >
                   Total Power
                 </th>
                 <th
                   style={{
-                    padding: "10px",
+                    padding: "12px",
                     textAlign: "left",
-                    borderBottom: "1px solid #e0e0e0",
+                    borderBottom: "1px solid #e6e6e6",
+                    color: "#000000",
                   }}
                 >
-                  Positive Hours
+                  Active Hours
                 </th>
                 <th
                   style={{
-                    padding: "10px",
+                    padding: "12px",
                     textAlign: "left",
-                    borderBottom: "1px solid #e0e0e0",
+                    borderBottom: "1px solid #e6e6e6",
+                    color: "#000000",
                   }}
                 >
                   Avg Power
@@ -431,32 +479,36 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
                 <tr key={date}>
                   <td
                     style={{
-                      padding: "10px",
-                      borderBottom: "1px solid #e0e0e0",
+                      padding: "12px",
+                      borderBottom: "1px solid #e6e6e6",
+                      color: "#000000",
                     }}
                   >
                     {date}
                   </td>
                   <td
                     style={{
-                      padding: "10px",
-                      borderBottom: "1px solid #e0e0e0",
+                      padding: "12px",
+                      borderBottom: "1px solid #e6e6e6",
+                      color: "#000000",
                     }}
                   >
                     {summary.TotalPower.toFixed(2)} Wh
                   </td>
                   <td
                     style={{
-                      padding: "10px",
-                      borderBottom: "1px solid #e0e0e0",
+                      padding: "12px",
+                      borderBottom: "1px solid #e6e6e6",
+                      color: "#000000",
                     }}
                   >
                     {summary.PositiveHours}
                   </td>
                   <td
                     style={{
-                      padding: "10px",
-                      borderBottom: "1px solid #e0e0e0",
+                      padding: "12px",
+                      borderBottom: "1px solid #e6e6e6",
+                      color: "#000000",
                     }}
                   >
                     {summary.AveragePower.toFixed(2)} W
@@ -483,20 +535,46 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
       }}
     >
       <div style={{ textAlign: "center" }}>
-        <h2 style={{ marginBottom: "20px" }}>Loading consumption data...</h2>
-        <p>Please wait while we process the latest trends</p>
+        <div
+          style={{
+            border: "4px solid rgba(18, 89, 195, 0.3)", // OneUI blue border
+            borderTop: "4px solid #1259c3", // OneUI blue top border
+            borderRadius: "50%",
+            width: "50px",
+            height: "50px",
+            animation: "spin 1s linear infinite",
+            margin: "0 auto 20px",
+          }}
+        ></div>
+        <h2
+          style={{
+            marginBottom: "20px",
+            color: "#1259c3",
+            fontWeight: "600",
+          }}
+        >
+          Loading consumption data...
+        </h2>
+        <p style={{ color: "#757575" }}>
+          Please wait while we process the latest trends
+        </p>
       </div>
     </motion.div>
   );
 
   return (
     <div
-      style={{ display: "flex", minHeight: "100vh", backgroundColor: "#fff" }}
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        backgroundColor: "#f2f2f2", // OneUI light background
+      }}
     >
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         signOut={signOut}
+        navigate={navigate}
       />
 
       <div style={{ flex: 1, padding: "20px", maxWidth: "calc(100% - 80px)" }}>
@@ -504,54 +582,65 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
           <LoadingScreen />
         ) : (
           <>
-            <h1
-              style={{
-                fontSize: "24px",
-                fontWeight: "700",
-                marginBottom: "20px",
-              }}
-            >
-              Consumption Trends
-            </h1>
-
             <div
               style={{
-                display: "flex",
-                gap: "10px",
+                backgroundColor: "white",
+                padding: "20px",
+                borderRadius: "15px", // Rounded corners for OneUI
+                boxShadow: "0 2px 10px rgba(0,0,0,0.08)", // OneUI shadow
                 marginBottom: "20px",
-                justifyContent: "center",
               }}
             >
-              {["keyInsights", "hourlyAverages", "dailySummary"].map(
-                (section) => (
-                  <button
-                    key={section}
-                    onClick={() => setActiveSection(section)}
-                    style={{
-                      padding: "10px 20px",
-                      backgroundColor:
-                        activeSection === section ? "#696cff" : "#e9ecef",
-                      color: activeSection === section ? "white" : "#1e1e2f",
-                      border: "none",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                      fontWeight: "600",
-                      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-                      transition: "background-color 0.3s ease",
-                    }}
-                  >
-                    {section === "keyInsights" && "Key Insights"}
-                    {section === "hourlyAverages" && "Hourly Averages"}
-                    {section === "dailySummary" && "Daily Summary"}
-                  </button>
-                )
-              )}
-            </div>
+              <h1
+                style={{
+                  fontSize: "1.5rem",
+                  fontWeight: "600",
+                  color: "#1259c3", // OneUI blue
+                  marginBottom: "20px",
+                }}
+              >
+                Energy Consumption Monitor
+              </h1>
 
-            {activeSection === "keyInsights" && <KeyInsightsCard />}
-            {activeSection === "hourlyAverages" && <HourlyAveragesChart />}
-            {activeSection === "dailySummary" && <DailySummaryTable />}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  marginBottom: "20px",
+                  justifyContent: "center",
+                  flexWrap: "wrap", // Add wrap for mobile responsiveness
+                }}
+              >
+                {["keyInsights", "hourlyAverages", "dailySummary"].map(
+                  (section) => (
+                    <button
+                      key={section}
+                      onClick={() => setActiveSection(section)}
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor:
+                          activeSection === section ? "#1259c3" : "#ffffff",
+                        color: activeSection === section ? "white" : "#000000",
+                        border: "none",
+                        borderRadius: "25px", // Rounded corners for OneUI
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      {section === "keyInsights" && "Dashboard"}
+                      {section === "hourlyAverages" && "Hourly Trends"}
+                      {section === "dailySummary" && "Daily Summary"}
+                    </button>
+                  )
+                )}
+              </div>
+
+              {activeSection === "keyInsights" && <KeyInsightsCard />}
+              {activeSection === "hourlyAverages" && <HourlyAveragesChart />}
+              {activeSection === "dailySummary" && <DailySummaryTable />}
+            </div>
           </>
         )}
       </div>

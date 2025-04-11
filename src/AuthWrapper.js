@@ -28,7 +28,7 @@ const AuthWrapper = ({ children }) => {
         <div className="auth-container">
           {/* Top Bar */}
           <div className="top-bar">
-            <div className="logo">Vaulta Battery Management System </div>
+            <div className="logo">Battery Management System</div>
             <div className="user-menu">
               <button onClick={toggleDropdown} className="user-button">
                 {user?.username} ▼
@@ -37,7 +37,7 @@ const AuthWrapper = ({ children }) => {
                 <div className="dropdown-menu">
                   <div className="dropdown-item">{user?.username}</div>
                   <button onClick={handleSignOut} className="dropdown-item">
-                    Log Out
+                    Sign Out
                   </button>
                 </div>
               )}

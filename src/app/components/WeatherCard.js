@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { FaSun, FaCloud, FaCloudRain, FaSnowflake } from "react-icons/fa";
+import {
+  FaSun,
+  FaCloud,
+  FaCloudRain,
+  FaSnowflake,
+  FaBolt,
+} from "react-icons/fa";
 
 const WeatherCard = ({ city = "Sydney" }) => {
   const [weatherData, setWeatherData] = useState(null);
@@ -32,36 +38,75 @@ const WeatherCard = ({ city = "Sydney" }) => {
   const renderWeatherIcon = (weatherCondition) => {
     switch (weatherCondition) {
       case "Clear":
-        return <FaSun size={40} color="#ffc107" />;
+        return <FaSun size={48} color="#FFC107" />;
       case "Clouds":
-        return <FaCloud size={40} color="#6c757d" />;
+        return <FaCloud size={48} color="#757575" />;
       case "Rain":
-        return <FaCloudRain size={40} color="#007bff" />;
+      case "Drizzle":
+        return <FaCloudRain size={48} color="#1259c3" />;
       case "Snow":
-        return <FaSnowflake size={40} color="#17a2b8" />;
+        return <FaSnowflake size={48} color="#00BCD4" />;
+      case "Thunderstorm":
+        return <FaBolt size={48} color="#F44336" />;
       default:
-        return <FaSun size={40} color="#ffc107" />;
+        return <FaCloud size={48} color="#757575" />;
     }
   };
 
   if (loading) {
-    return <div>Loading weather data...</div>;
+    return (
+      <div
+        style={{
+          width: "275px",
+          height: "400px",
+          border: "1px solid #e6e6e6",
+          borderRadius: "15px", // Rounded corners for OneUI
+          padding: "20px",
+          background: "#fff",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          color: "#757575",
+        }}
+      >
+        Loading weather data...
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div
+        style={{
+          width: "275px",
+          height: "400px",
+          border: "1px solid #e6e6e6",
+          borderRadius: "15px", // Rounded corners for OneUI
+          padding: "20px",
+          background: "#fff",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          color: "#F44336",
+        }}
+      >
+        Error: {error}
+      </div>
+    );
   }
 
   return (
     <div
       style={{
-        width: "250px", // Fixed width for consistency
+        width: "275px", // Fixed width for consistency
         height: "400px", // Fixed height for consistency
-        border: "1px solid #e0e0e0", // CoreUI border color
-        borderRadius: "8px", // CoreUI border radius
+        border: "1px solid #e6e6e6", // Light border
+        borderRadius: "15px", // Rounded corners for OneUI
         padding: "20px",
-        background: "#fff", // CoreUI background color
-        boxShadow: "0 4px 6px rgba(0,0,0,0.05)", // CoreUI shadow
+        background: "#fff", // White background
+        boxShadow: "0 2px 10px rgba(0,0,0,0.08)", // OneUI shadow
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -71,9 +116,9 @@ const WeatherCard = ({ city = "Sydney" }) => {
       {/* Weather Location */}
       <h3
         style={{
-          fontSize: "1.25rem", // CoreUI font size
-          fontWeight: "600", // CoreUI font weight
-          color: "#3c4b64", // CoreUI primary text color
+          fontSize: "1.25rem",
+          fontWeight: "600",
+          color: "#1259c3", // OneUI blue
           textAlign: "center",
           marginBottom: "10px",
         }}
@@ -96,9 +141,9 @@ const WeatherCard = ({ city = "Sydney" }) => {
       {/* Temperature */}
       <div
         style={{
-          fontSize: "1.5rem", // CoreUI font size
-          fontWeight: "600", // CoreUI font weight
-          color: "#3c4b64", // CoreUI primary text color
+          fontSize: "2rem",
+          fontWeight: "600",
+          color: "#000000", // OneUI text color
           textAlign: "center",
           marginBottom: "10px",
         }}
@@ -109,10 +154,11 @@ const WeatherCard = ({ city = "Sydney" }) => {
       {/* Weather Description */}
       <div
         style={{
-          fontSize: "1rem", // CoreUI font size
-          color: "#6c757d", // CoreUI secondary text color
+          fontSize: "1rem",
+          color: "#757575", // Gray text
           textAlign: "center",
-          marginBottom: "15px",
+          marginBottom: "20px",
+          textTransform: "capitalize",
         }}
       >
         {weatherData?.weather[0]?.description}
@@ -121,17 +167,50 @@ const WeatherCard = ({ city = "Sydney" }) => {
       {/* Additional Weather Details */}
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontSize: "0.9rem", // CoreUI font size
-          color: "#6c757d", // CoreUI secondary text color
+          borderTop: "1px solid #e6e6e6",
+          paddingTop: "15px",
         }}
       >
-        <div>
-          <strong>Humidity:</strong> {weatherData?.main?.humidity}%
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: "0.9rem",
+            color: "#000000", // OneUI text color
+            marginBottom: "10px",
+          }}
+        >
+          <div>Humidity:</div>
+          <div style={{ fontWeight: "600" }}>
+            {weatherData?.main?.humidity}%
+          </div>
         </div>
-        <div>
-          <strong>Wind:</strong> {weatherData?.wind?.speed} m/s
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: "0.9rem",
+            color: "#000000", // OneUI text color
+            marginBottom: "10px",
+          }}
+        >
+          <div>Wind:</div>
+          <div style={{ fontWeight: "600" }}>
+            {weatherData?.wind?.speed} m/s
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: "0.9rem",
+            color: "#000000", // OneUI text color
+          }}
+        >
+          <div>Pressure:</div>
+          <div style={{ fontWeight: "600" }}>
+            {weatherData?.main?.pressure} hPa
+          </div>
         </div>
       </div>
     </div>

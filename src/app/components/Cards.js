@@ -5,19 +5,19 @@ const CardItem = ({ label, value, icon, color }) => (
     style={{
       display: "flex",
       alignItems: "center",
-      border: "1px solid #ddd",
-      borderRadius: "10px",
+      border: "1px solid #e6e6e6",
+      borderRadius: "15px", // Rounded corners for OneUI
       padding: "15px",
       margin: "10px 0",
-      backgroundColor: "#f9f9f9",
-      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+      backgroundColor: "#ffffff",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
     }}
   >
     {icon && (
       <div
         style={{
           marginRight: "15px",
-          color: color || "#333",
+          color: color || "#1259c3", // Default to OneUI blue
           fontSize: "24px",
         }}
       >
@@ -25,8 +25,10 @@ const CardItem = ({ label, value, icon, color }) => (
       </div>
     )}
     <div>
-      <div style={{ color: "#666", fontSize: "14px" }}>{label}</div>
-      <div style={{ fontWeight: "bold", fontSize: "16px" }}>{value}</div>
+      <div style={{ color: "#757575", fontSize: "14px" }}>{label}</div>
+      <div style={{ fontWeight: "bold", fontSize: "16px", color: "#000000" }}>
+        {value}
+      </div>
     </div>
   </div>
 );
@@ -34,50 +36,53 @@ const CardItem = ({ label, value, icon, color }) => (
 const Cards = ({ bmsState, roundValue }) => {
   const cardSections = [
     {
-      title: "State of Charge (SOC)",
+      title: "State of Charge",
       items: [
         {
-          label: "Ah Capacity",
+          label: "Capacity (Ah)",
           value: roundValue(bmsState.SOCAh?.N || 0),
           icon: "⚡",
+          color: "#1259c3", // OneUI blue
         },
         {
-          label: "Percentage",
+          label: "Battery Level",
           value: `${roundValue(bmsState.SOCPercent?.N || 0)}%`,
           icon: "%",
+          color: "#1259c3", // OneUI blue
         },
       ],
     },
     {
-      title: "Voltages",
+      title: "Voltage Readings",
       items: [
         {
           label: "Load Voltage",
           value: `${roundValue(bmsState.TotalLoadVoltage?.N || 0)} V`,
           icon: "🔌",
-          color: "#2196F3",
+          color: "#1259c3", // OneUI blue
         },
         {
           label: "Battery Voltage",
           value: `${roundValue(bmsState.TotalBattVoltage?.N || 0)} V`,
           icon: "🔋",
-          color: "#4CAF50",
+          color: "#4CAF50", // Green
         },
       ],
     },
     {
-      title: "Current & Pack Info",
+      title: "Current & Environmental Impact",
       items: [
         {
           label: "Total Current",
           value: `${roundValue(bmsState.TotalCurrent?.N || 0)} A`,
           icon: "⚡",
-          color: "#FF9800",
+          color: "#FF9800", // Orange
         },
         {
-          label: "Carbon Offset (kg)",
-          value: roundValue(bmsState.Carbon_Offset_kg?.N || 0),
-          icon: "#️⃣",
+          label: "Carbon Offset",
+          value: `${roundValue(bmsState.Carbon_Offset_kg?.N || 0)} kg`,
+          icon: "🌍",
+          color: "#4CAF50", // Green
         },
       ],
     },
@@ -97,18 +102,18 @@ const Cards = ({ bmsState, roundValue }) => {
           key={index}
           style={{
             background: "#fff",
-            borderRadius: "10px",
-            boxShadow: "0px 10px 30px rgba(0, 0, 0, 0.1)",
+            borderRadius: "15px", // Rounded corners for OneUI
+            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.08)",
             padding: "20px",
             textAlign: "left",
           }}
         >
           <h3
             style={{
-              fontWeight: "bold",
+              fontWeight: "600",
               marginBottom: "15px",
-              color: "#333",
-              borderBottom: "2px solid #f0f0f0",
+              color: "#1259c3", // OneUI blue
+              borderBottom: "2px solid #f2f2f2",
               paddingBottom: "10px",
             }}
           >
