@@ -18,6 +18,7 @@ import useDynamoDB from "./useDynamoDB.js";
 import { invokeLambdaFunction } from "./calc/lastmonthdata.js"; // Import the Lambda invoker function
 import "@aws-amplify/ui-react/styles.css";
 import { AnimatePresence, motion } from "framer-motion"; // For smooth transitions
+import MLDashboard from "./app/components/MLDashboard.js"; // Import the new MLDashboard component
 
 // Add the `region` parameter to the `awsconfig` object
 awsconfig.region = awsconfig.aws_project_region;
@@ -182,6 +183,22 @@ const AnimatedRoutes = ({ bmsData, lambdaResponse, user }) => {
             >
               <Navigate to="/" replace />
             </motion.div>
+          }
+        />
+        {/* ML Dashboard route */}
+        <Route
+          path="/ml-dashboard"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <MLDashboard bmsData={bmsData} lambdaResponse={lambdaResponse} />
+              </motion.div>
+            </ProtectedRoute>
           }
         />
       </Routes>

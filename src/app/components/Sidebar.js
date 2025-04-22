@@ -22,6 +22,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       onClick: () => navigate("/page3"),
     },
     {
+      icon: "🧠",
+      label: "ML Dashboard",
+      onClick: () => navigate("/ml-dashboard"),
+    },
+    {
       icon: "⚙️",
       label: "System Settings",
       onClick: () => navigate("/page4"),
