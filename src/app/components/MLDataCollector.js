@@ -922,15 +922,21 @@ const processMaintenanceData = (data) => {
   return maintenanceParameters;
 };
 
-// Main function to collect ML data with parallel processing
-export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, progressCallback) => {
-  try {
+// Main function to collect ML data with parallel processing - add timer and custom chunk count
+export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, progressCallback, customChunkCount = 0) => {
+    // Start timer
+    const startTime = performance.now();
+    try {
+    
     // Progress update: initialization
     if (progressCallback) {
       progressCallback({
         stage: "initializing",
         status: "in_progress",
-        message: "Setting up data collection..."
+        message: "Setting up data collection...",
+        timing: {
+          start: startTime
+        }
       });
     }
     
@@ -944,15 +950,20 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
     });
 
     // Calculate time range and create chunks for parallel processing
-    const { startTime, endTime } = calculateTimeRange(selectedTimeRange);
-    console.log(`Time range: ${new Date(startTime * 1000).toISOString()} to ${new Date(endTime * 1000).toISOString()}`);
+    const { startTime: rangeStart, endTime: rangeEnd } = calculateTimeRange(selectedTimeRange);
+    console.log(`Time range: ${new Date(rangeStart * 1000).toISOString()} to ${new Date(rangeEnd * 1000).toISOString()}`);
     
     // For longer time ranges, use more chunks
-    const numChunks = selectedTimeRange === "1year" ? 12 : 
-                      selectedTimeRange === "6months" ? 6 : 
-                      selectedTimeRange === "3months" ? 4 : 2;
+    let numChunks;
+    if (customChunkCount > 0) {
+      numChunks = customChunkCount; // Use custom chunk count if provided
+    } else {
+      numChunks = selectedTimeRange === "1year" ? 12 : 
+                  selectedTimeRange === "6months" ? 6 : 
+                  selectedTimeRange === "3months" ? 4 : 2;
+    }
     
-    const chunks = createTimeChunks(startTime, endTime, numChunks);
+    const chunks = createTimeChunks(rangeStart, rangeEnd, numChunks);
     
     // Progress update: fetching with chunks
     if (progressCallback) {
@@ -964,6 +975,10 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
           chunks: numChunks,
           completedChunks: 0,
           completedPercentage: 0
+        },
+        timing: {
+          start: startTime,
+          elapsed: performance.now() - startTime
         }
       });
     }
@@ -988,6 +1003,10 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
                 completedChunks: progress.status === "complete" ? progress.chunk.index + 1 : progress.chunk.index,
                 completedPercentage: Math.floor(((progress.chunk.index * 100) + 
                   (progress.status === "complete" ? 100 : (progress.itemCount / 100) * 100)) / numChunks)
+              },
+              timing: {
+                start: startTime,
+                elapsed: performance.now() - startTime
               }
             };
             
@@ -1001,7 +1020,12 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
     console.log(`Waiting for ${numChunks} chunks to complete...`);
     const chunkResults = await Promise.all(chunkPromises);
     const totalItems = chunkResults.reduce((sum, chunk) => sum + chunk.count, 0);
-    console.log(`All chunks completed. Total items: ${totalItems}`);
+    
+    // Record fetch completion time
+    const fetchCompletionTime = performance.now();
+    const fetchDuration = fetchCompletionTime - startTime;
+    
+    console.log(`All chunks completed. Total items: ${totalItems}. Fetch duration: ${fetchDuration.toFixed(2)}ms`);
     
     // Progress update: processing
     if (progressCallback) {
@@ -1012,6 +1036,12 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
         progress: {
           totalItems,
           completedPercentage: 0
+        },
+        timing: {
+          start: startTime,
+          fetchComplete: fetchCompletionTime,
+          fetchDuration,
+          elapsed: fetchCompletionTime - startTime
         }
       });
     }
@@ -1027,20 +1057,79 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
             stage: "processing",
             status: progress.status,
             message: progress.message,
-            progress: progress.progress
+            progress: progress.progress,
+            timing: {
+              start: startTime,
+              fetchComplete: fetchCompletionTime,
+              fetchDuration,
+              elapsed: performance.now() - startTime
+            }
           });
         }
       }
     );
-    console.log(`Stream processing completed for ${taskType}`);
+    
+    // Record total completion time
+    const completionTime = performance.now();
+    const totalDuration = completionTime - startTime;
+    const processingDuration = completionTime - fetchCompletionTime;
+    
+    console.log(`Stream processing completed for ${taskType}. Processing duration: ${processingDuration.toFixed(2)}ms. Total duration: ${totalDuration.toFixed(2)}ms`);
     
     // Progress update: completed
     if (progressCallback) {
       progressCallback({
         stage: "completed",
         status: "complete",
-        message: `Successfully processed ${totalItems} records for ${taskType}`
+        message: `Successfully processed ${totalItems} records for ${taskType}`,
+        timing: {
+          start: startTime,
+          fetchComplete: fetchCompletionTime,
+          fetchDuration,
+          processingDuration,
+          totalDuration,
+          end: completionTime
+        }
       });
+    }
+
+    // Create time information about each data point
+    const timeInfo = {
+      firstTimestamp: null,
+      lastTimestamp: null,
+      timestampsByDay: {},
+      daysCovered: 0,
+      timeRange: {
+        start: rangeStart,
+        end: rangeEnd,
+        formattedStart: new Date(rangeStart * 1000).toISOString(),
+        formattedEnd: new Date(rangeEnd * 1000).toISOString()
+      }
+    };
+
+    // Calculate data coverage
+    if (chunkResults.length > 0 && chunkResults[0].items.length > 0) {
+      // Get all timestamps from all chunks
+      const allTimestamps = chunkResults
+        .flatMap(chunk => chunk.items)
+        .map(item => parseInt(item.Timestamp.N));
+      
+      // Sort timestamps
+      allTimestamps.sort((a, b) => a - b);
+      
+      timeInfo.firstTimestamp = allTimestamps[0];
+      timeInfo.lastTimestamp = allTimestamps[allTimestamps.length - 1];
+      
+      // Group timestamps by day
+      allTimestamps.forEach(timestamp => {
+        const date = new Date(timestamp * 1000).toISOString().split('T')[0];
+        if (!timeInfo.timestampsByDay[date]) {
+          timeInfo.timestampsByDay[date] = [];
+        }
+        timeInfo.timestampsByDay[date].push(timestamp);
+      });
+      
+      timeInfo.daysCovered = Object.keys(timeInfo.timestampsByDay).length;
     }
 
     return {
@@ -1049,8 +1138,14 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
         timeRange: selectedTimeRange,
         dataPoints: totalItems,
         chunks: numChunks,
-        startTime,
-        endTime,
+        startTime: rangeStart,
+        endTime: rangeEnd,
+        timing: {
+          fetchDuration,
+          processingDuration,
+          totalDuration
+        },
+        coverage: timeInfo
       },
       rawData: chunkResults.reduce((all, chunk) => all.concat(chunk.items), []),
       rawSampleData: processedResult.rawSample,
@@ -1064,7 +1159,12 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
       progressCallback({
         stage: "error",
         status: "error",
-        message: `Error: ${error.message}`
+        message: `Error: ${error.message}`,
+        timing: {
+          start: startTime,
+          error: performance.now(),
+          elapsed: performance.now() - startTime
+        }
       });
     }
     
