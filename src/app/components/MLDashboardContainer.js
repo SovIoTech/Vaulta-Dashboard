@@ -13,6 +13,7 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
   const [rawData, setRawData] = useState({}); // Cache for raw data by tagId and timeRange
   const [selectedTagId, setSelectedTagId] = useState("0x440");
   const [selectedTimeRange, setSelectedTimeRange] = useState("1month");
+  const [customChunkCount, setCustomChunkCount] = useState(4); // Default chunk count
   const [activeTask, setActiveTask] = useState("batteryHealth");
   const [showRawData, setShowRawData] = useState(false);
   const [progressInfo, setProgressInfo] = useState({});
@@ -31,6 +32,9 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
     { label: "Last 6 Months", value: "6months" },
     { label: "Last 1 Year", value: "1year" },
   ];
+
+  // Chunk options
+  const chunkOptions = [2, 4, 8, 12, 16, 24, 32];
 
   // List of TagIDs (battery IDs)
   const baseIds = [
@@ -119,6 +123,12 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
   const hasCachedData = () => {
     const cacheKey = getCacheKey(selectedTagId, selectedTimeRange);
     return !!rawData[cacheKey];
+  };
+
+  // Handle chunk count change
+  const handleChunkCountChange = (e) => {
+    const value = parseInt(e.target.value, 10);
+    setCustomChunkCount(value);
   };
 
   if (loading && !bmsData) {
@@ -242,6 +252,53 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
                 ))}
               </select>
             </div>
+            
+            {/* Chunk Count Selection - NEW */}
+            <div style={{
+              flex: "1 1 200px",
+              backgroundColor: "#f9f9f9",
+              padding: "15px",
+              borderRadius: "15px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            }}>
+              <label style={{
+                fontSize: "14px",
+                color: "#757575",
+                marginBottom: "8px",
+                display: "block",
+                fontWeight: "500",
+              }}>
+                Parallel Chunks:
+              </label>
+              <select
+                value={customChunkCount}
+                onChange={handleChunkCountChange}
+                style={{
+                  padding: "10px 15px",
+                  borderRadius: "25px",
+                  border: "1px solid #e6e6e6",
+                  width: "100%",
+                  fontSize: "14px",
+                  color: "#000000",
+                  backgroundColor: "#ffffff",
+                  cursor: "pointer",
+                }}
+              >
+                {chunkOptions.map((count) => (
+                  <option key={count} value={count}>
+                    {count} {count === 1 ? 'Chunk' : 'Chunks'}
+                  </option>
+                ))}
+              </select>
+              <div style={{ 
+                fontSize: "12px", 
+                color: "#666", 
+                marginTop: "8px",
+                fontStyle: "italic"
+              }}>
+                More chunks = faster processing but higher server load
+              </div>
+            </div>
           </div>
 
           {/* Data Cache Status */}
@@ -272,6 +329,7 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
             hasCachedData={hasCachedData}
             selectedTagId={selectedTagId}
             selectedTimeRange={selectedTimeRange}
+            customChunkCount={customChunkCount}
             setMlData={setMlData}
             setRawData={setRawData}
             setActiveTask={setActiveTask}

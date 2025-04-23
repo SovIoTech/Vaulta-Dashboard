@@ -98,6 +98,7 @@ const MLTaskSelection = ({
   hasCachedData,
   selectedTagId,
   selectedTimeRange,
+  customChunkCount,
   setMlData,
   setRawData,
   setActiveTask,
@@ -179,11 +180,13 @@ const MLTaskSelection = ({
 
     try {
       // Call the specialized ML data collection function with progress callback
+      // Pass the custom chunk count to the collector
       const collectedData = await collectMLData(
         selectedTagId, 
         selectedTimeRange, 
         taskType,
-        (progress) => handleProgressUpdate(taskType, progress)
+        (progress) => handleProgressUpdate(taskType, progress),
+        customChunkCount // Pass the custom chunk count to the collector
       );
       
       // Cache the raw data for future use

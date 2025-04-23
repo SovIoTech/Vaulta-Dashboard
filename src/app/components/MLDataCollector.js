@@ -2,6 +2,20 @@ import AWS from "aws-sdk";
 import { fetchAuthSession } from "aws-amplify/auth";
 import awsconfig from "../../aws-exports.js";
 
+// Helper function to safely convert values to numbers
+const safeNumberConversion = (value) => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const num = parseFloat(value);
+    return isNaN(num) ? 0 : num;
+  }
+  if (value && typeof value === 'object' && value.N) {
+    const num = parseFloat(value.N);
+    return isNaN(num) ? 0 : num;
+  }
+  return 0;
+};
+
 // Calculate time range based on selection
 const calculateTimeRange = (timeRange) => {
   const now = Math.floor(Date.now() / 1000); // Current timestamp in seconds
@@ -39,7 +53,7 @@ const createTimeChunks = (startTime, endTime, numChunks = 4) => {
   return chunks;
 };
 
-// Paginated query function to fetch data from a time chunk
+// Enhanced function to handle cached data with proper type conversion
 const fetchChunkData = async (dynamoDB, tableName, tagID, chunk, progressCallback) => {
   let allItems = [];
   let lastEvaluatedKey = null;
@@ -50,43 +64,51 @@ const fetchChunkData = async (dynamoDB, tableName, tagID, chunk, progressCallbac
     console.log(`Starting chunk ${chunk.index + 1}/${chunk.total}: ${new Date(chunk.startTime * 1000).toISOString()} to ${new Date(chunk.endTime * 1000).toISOString()}`);
     
     do {
-      // Create the base query params
+      // Create the base query params with proper type handling
       const params = {
         TableName: tableName,
         KeyConditionExpression: "TagID = :tagID AND #ts BETWEEN :startTime AND :endTime",
         ExpressionAttributeNames: {
-          "#ts": "Timestamp" // Use alias for reserved keyword
+          "#ts": "Timestamp"
         },
         ExpressionAttributeValues: {
           ":tagID": { S: tagID },
-          ":startTime": { N: chunk.startTime.toString() },
-          ":endTime": { N: chunk.endTime.toString() }
+          ":startTime": { N: safeNumberConversion(chunk.startTime).toString() },
+          ":endTime": { N: safeNumberConversion(chunk.endTime).toString() }
         },
-        Limit: 100 // Fetch 100 items per request
+        Limit: 100
       };
       
-      // Add the exclusiveStartKey for pagination if we have one
       if (lastEvaluatedKey) {
         params.ExclusiveStartKey = lastEvaluatedKey;
       }
       
-      // Fetch the data
       const data = await dynamoDB.query(params).promise();
       
-      // Add the items to our collection
-      allItems = allItems.concat(data.Items);
+      // Process items to ensure proper data types
+      const processedItems = data.Items.map(item => {
+        const processedItem = {};
+        for (const [key, value] of Object.entries(item)) {
+          if (value.N) {
+            processedItem[key] = safeNumberConversion(value.N);
+          } else if (value.S) {
+            processedItem[key] = value.S;
+          } else if (value.BOOL !== undefined) {
+            processedItem[key] = value.BOOL;
+          } else {
+            processedItem[key] = value;
+          }
+        }
+        return processedItem;
+      });
       
-      // Update pagination token
+      allItems = allItems.concat(processedItems);
       lastEvaluatedKey = data.LastEvaluatedKey;
-      
-      // Update counters
       pageCount++;
       totalItems += data.Items.length;
       
-      // Log progress
       console.log(`Chunk ${chunk.index + 1}/${chunk.total}: Page ${pageCount}, Total items: ${totalItems}`);
       
-      // Call the progress callback if provided
       if (progressCallback) {
         const hasMore = lastEvaluatedKey !== undefined;
         progressCallback({
@@ -99,7 +121,6 @@ const fetchChunkData = async (dynamoDB, tableName, tagID, chunk, progressCallbac
         });
       }
       
-      // Add a small delay to avoid throttling
       if (lastEvaluatedKey) {
         await new Promise(resolve => setTimeout(resolve, 50));
       }
@@ -116,7 +137,6 @@ const fetchChunkData = async (dynamoDB, tableName, tagID, chunk, progressCallbac
   } catch (error) {
     console.error(`Error in chunk ${chunk.index + 1}/${chunk.total}:`, error);
     
-    // Call the callback with error status
     if (progressCallback) {
       progressCallback({
         chunk: chunk,
@@ -133,10 +153,18 @@ const fetchChunkData = async (dynamoDB, tableName, tagID, chunk, progressCallbac
   }
 };
 
-// Data processing functions - simplified for this example
+// Updated data processing with type safety
 const processDataForTaskType = (taskType, data) => {
-  // This is a simplified version that returns structured data
-  // without complex processing for each task type
+  // Ensure all numeric values are properly converted
+  const processedData = data.map(item => {
+    const processedItem = {};
+    for (const [key, value] of Object.entries(item)) {
+      processedItem[key] = typeof value === 'string' && !isNaN(value) ? 
+        safeNumberConversion(value) : value;
+    }
+    return processedItem;
+  });
+
   switch (taskType) {
     case "batteryHealth":
       return {
@@ -219,7 +247,7 @@ const processDataForTaskType = (taskType, data) => {
   }
 };
 
-// Stream processing function (simplified for this example)
+// Stream processing with type safety
 const streamProcessData = (taskType, chunks, progressCallback) => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -243,16 +271,14 @@ const streamProcessData = (taskType, chunks, progressCallback) => {
         totalCount,
         rawSample
       });
-    }, 1000); // Simulate processing time
+    }, 1000);
   });
 };
 
-// Main function to collect ML data
+// Main function with enhanced error handling
 export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, progressCallback) => {
-  // Start timer
   const startTime = performance.now();
   try {
-    // Progress update: initialization
     if (progressCallback) {
       progressCallback({
         stage: "initializing",
@@ -271,18 +297,15 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
       credentials,
     });
 
-    // Calculate time range and create chunks for parallel processing
     const { startTime: rangeStart, endTime: rangeEnd } = calculateTimeRange(selectedTimeRange);
     console.log(`Time range: ${new Date(rangeStart * 1000).toISOString()} to ${new Date(rangeEnd * 1000).toISOString()}`);
     
-    // For longer time ranges, use more chunks
     const numChunks = selectedTimeRange === "1year" ? 12 : 
                       selectedTimeRange === "6months" ? 6 : 
-                      selectedTimeRange === "3months" ? 4 : 2;
+                      selectedTimeRange === "3months" ? 4 : 4;
     
     const chunks = createTimeChunks(rangeStart, rangeEnd, numChunks);
     
-    // Progress update: fetching with chunks
     if (progressCallback) {
       progressCallback({
         stage: "fetching",
@@ -300,7 +323,6 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
       });
     }
     
-    // Fetch data from all chunks in parallel
     const chunkPromises = chunks.map((chunk) => 
       fetchChunkData(
         dynamoDB,
@@ -309,7 +331,6 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
         chunk,
         (progress) => {
           if (progressCallback) {
-            // Calculate overall progress based on chunk progress
             const overallProgress = {
               stage: "fetching",
               status: progress.status,
@@ -333,18 +354,15 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
       )
     );
     
-    // Wait for all chunks to complete
     console.log(`Waiting for ${numChunks} chunks to complete...`);
     const chunkResults = await Promise.all(chunkPromises);
     const totalItems = chunkResults.reduce((sum, chunk) => sum + chunk.count, 0);
     
-    // Record fetch completion time
     const fetchCompletionTime = performance.now();
     const fetchDuration = fetchCompletionTime - startTime;
     
     console.log(`All chunks completed. Total items: ${totalItems}. Fetch duration: ${fetchDuration.toFixed(2)}ms`);
     
-    // Progress update: processing
     if (progressCallback) {
       progressCallback({
         stage: "processing",
@@ -363,7 +381,6 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
       });
     }
     
-    // Process the data in streaming fashion
     console.log(`Starting stream processing for ${taskType}...`);
     const processedResult = await streamProcessData(
       taskType, 
@@ -371,14 +388,12 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
       progressCallback
     );
     
-    // Record total completion time
     const completionTime = performance.now();
     const totalDuration = completionTime - startTime;
     const processingDuration = completionTime - fetchCompletionTime;
     
     console.log(`Stream processing completed for ${taskType}. Processing duration: ${processingDuration.toFixed(2)}ms. Total duration: ${totalDuration.toFixed(2)}ms`);
     
-    // Progress update: completed
     if (progressCallback) {
       progressCallback({
         stage: "completed",
@@ -416,7 +431,6 @@ export const collectMLData = async (selectedTagId, selectedTimeRange, taskType, 
   } catch (error) {
     console.error("Error collecting ML data:", error);
     
-    // Progress update: error
     if (progressCallback) {
       progressCallback({
         stage: "error",
