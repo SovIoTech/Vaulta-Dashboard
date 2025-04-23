@@ -3,7 +3,7 @@ export const calculateTimeRange = (timeRange) => {
     const now = Math.floor(Date.now() / 1000); // Current timestamp in seconds
     switch (timeRange) {
       case "1month":
-        return { startTime: now - 2592000, endTime: now }; // 30 days
+        return { startTime: now - 500, endTime: now }; // 30 days
       case "3months":
         return { startTime: now - 7776000, endTime: now }; // 90 days
       case "6months":

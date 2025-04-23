@@ -33,7 +33,7 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
     { label: "Last 1 Year", value: "1year" },
   ];
 
-  // Chunk options
+  // Chunk options with more granular control
   const chunkOptions = [2, 4, 8, 12, 16, 24, 32];
 
   // List of TagIDs (battery IDs)
@@ -106,7 +106,6 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
       // If we have page info, use that for visual feedback
       if (progress.progress?.pageCount) {
         // Create a "bouncing" progress that never quite reaches 100%
-        // This gives visual feedback without knowing the actual percentage
         const base = Math.min(90, progress.progress.pageCount * 5);
         return base;
       }
@@ -125,10 +124,13 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
     return !!rawData[cacheKey];
   };
 
-  // Handle chunk count change
+  // Handle chunk count change with validation
   const handleChunkCountChange = (e) => {
     const value = parseInt(e.target.value, 10);
-    setCustomChunkCount(value);
+    // Validate and set chunk count
+    if (value >= 2 && value <= 32) {
+      setCustomChunkCount(value);
+    }
   };
 
   if (loading && !bmsData) {
@@ -253,7 +255,7 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
               </select>
             </div>
             
-            {/* Chunk Count Selection - NEW */}
+            {/* Chunk Count Selection */}
             <div style={{
               flex: "1 1 200px",
               backgroundColor: "#f9f9f9",
