@@ -1,7 +1,55 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 
-const NodeTables = ({ nodeData }) => {
-  const [activeView, setActiveView] = useState("voltages"); // Toggle between voltages and temperatures
+const NodeTables = ({ nodeData, condensed = false }) => {
+  const [activeView, setActiveView] = useState("voltages");
+
+  // Renders status cell with color
+  const renderStatus = (value, dataType) => {
+    let status, statusClass;
+    
+    if (dataType === "voltages") {
+      if (value > 4.2) {
+        status = "ERROR";
+        statusClass = "error";
+      } else if (value < 3.0) {
+        status = "ERROR";
+        statusClass = "error";
+      } else {
+        status = "OK";
+        statusClass = "ok";
+      }
+    } else { // temperatures
+      if (value > 45) {
+        status = "ERROR";
+        statusClass = "error";
+      } else if (value < 0) {
+        status = "ERROR";
+        statusClass = "error";
+      } else {
+        status = "OK";
+        statusClass = "ok";
+      }
+    }
+    
+    return (
+      <div
+        style={{
+          backgroundColor: statusClass === "ok" ? "#8BC34A" : "#FF0000",
+          color: "white",
+          padding: condensed ? "2px 5px" : "5px 10px",
+          borderRadius: "2px",
+          fontSize: condensed ? "0.75rem" : "0.85rem",
+          fontWeight: "600",
+          display: "inline-block",
+          textAlign: "center",
+          minWidth: condensed ? "40px" : "60px"
+        }}
+      >
+        {status}
+      </div>
+    );
+  };
 
   const renderTable = (dataType, node) => {
     const dataToRender =
@@ -10,154 +58,127 @@ const NodeTables = ({ nodeData }) => {
     return (
       <div
         style={{
-          background: "#fff", // White background
-          borderRadius: "15px", // Rounded corners for OneUI
-          padding: "20px",
-          marginBottom: "20px",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.08)", // OneUI shadow
-          flex: 1, // Equal width for both tables
-          margin: "0 10px", // Add spacing between tables
+          background: "#fff",
+          borderRadius: "2px",
+          padding: condensed ? "10px" : "20px",
+          marginBottom: condensed ? "10px" : "20px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+          flex: 1,
+          margin: "0 5px",
         }}
       >
         <h3
           style={{
             fontWeight: "600",
-            marginBottom: "15px",
-            color: "#1259c3", // OneUI blue
+            marginBottom: "10px",
+            color: "#333333",
+            fontSize: condensed ? "0.95rem" : "1.1rem"
           }}
         >
-          {node.node}{" "}
-          {dataType === "voltages" ? "Cell Voltages" : "Temperatures"}
+          {node.node} {dataType === "voltages" ? "Cell Voltages" : "Temperatures"}
         </h3>
-        <table
-          style={{
-            width: "100%",
-            textAlign: "left",
-            borderCollapse: "collapse",
-            borderRadius: "10px", // Rounded corners for OneUI
-            overflow: "hidden",
-          }}
-        >
-          <thead>
-            <tr style={{ backgroundColor: "#f2f2f2" }}>
-              {" "}
-              {/* OneUI light background */}
-              <th
-                style={{
-                  padding: "12px",
-                  border: "1px solid #e6e6e6",
-                  color: "#000000", // OneUI text color
-                }}
-              >
-                {dataType === "voltages" ? "Cell" : "Sensor"}
-              </th>
-              <th
-                style={{
-                  padding: "12px",
-                  border: "1px solid #e6e6e6",
-                  color: "#000000", // OneUI text color
-                }}
-              >
-                {dataType === "voltages" ? "Voltage (V)" : "Temperature (°C)"}
-              </th>
-              <th
-                style={{
-                  padding: "12px",
-                  border: "1px solid #e6e6e6",
-                  color: "#000000", // OneUI text color
-                }}
-              >
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {dataToRender.map((value, i) => {
-              const status =
-                dataType === "voltages"
-                  ? value > 4.2
-                    ? "High"
-                    : value < 3.0
-                    ? "Low"
-                    : "Normal"
-                  : value > 45
-                  ? "Critical"
-                  : value < 0
-                  ? "Low"
-                  : "Normal";
-
-              const statusColor =
-                status === "High" || status === "Critical"
-                  ? "#F44336" // Red
-                  : status === "Low"
-                  ? "#FF9800" // Orange
-                  : "#4CAF50"; // Green
-
-              return (
+        <div style={{ maxHeight: condensed ? "300px" : "none", overflow: "auto" }}>
+          <table
+            style={{
+              width: "100%",
+              textAlign: "left",
+              borderCollapse: "collapse",
+              fontSize: condensed ? "0.8rem" : "0.9rem"
+            }}
+          >
+            <thead>
+              <tr style={{ backgroundColor: "#f5f5f5" }}>
+                <th
+                  style={{
+                    padding: condensed ? "5px 8px" : "8px 12px",
+                    border: "1px solid #e0e0e0",
+                    color: "#333333",
+                  }}
+                >
+                  {dataType === "voltages" ? "Cell" : "Sensor"}
+                </th>
+                <th
+                  style={{
+                    padding: condensed ? "5px 8px" : "8px 12px",
+                    border: "1px solid #e0e0e0",
+                    color: "#333333",
+                  }}
+                >
+                  {dataType === "voltages" ? "Voltage (V)" : "Temperature (°C)"}
+                </th>
+                <th
+                  style={{
+                    padding: condensed ? "5px 8px" : "8px 12px",
+                    border: "1px solid #e0e0e0",
+                    color: "#333333",
+                    textAlign: "center"
+                  }}
+                >
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {dataToRender.map((value, i) => (
                 <tr key={i}>
                   <td
                     style={{
-                      padding: "12px",
-                      border: "1px solid #e6e6e6",
-                      color: "#000000", // OneUI text color
+                      padding: condensed ? "4px 8px" : "8px 12px",
+                      border: "1px solid #e0e0e0",
+                      color: "#333333",
                     }}
                   >
                     {dataType === "voltages" ? `Cell ${i}` : `Sensor ${i}`}
                   </td>
                   <td
                     style={{
-                      padding: "12px",
-                      border: "1px solid #e6e6e6",
-                      color: "#000000", // OneUI text color
+                      padding: condensed ? "4px 8px" : "8px 12px",
+                      border: "1px solid #e0e0e0",
+                      color: "#333333",
                     }}
                   >
                     {value}
                   </td>
                   <td
                     style={{
-                      padding: "12px",
-                      border: "1px solid #e6e6e6",
-                      color: statusColor,
-                      fontWeight: "600",
+                      padding: condensed ? "4px 8px" : "8px 12px",
+                      border: "1px solid #e0e0e0",
+                      textAlign: "center"
                     }}
                   >
-                    {status}
+                    {renderStatus(value, dataType)}
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {dataType === "voltages" && (
-          <p style={{ marginTop: "10px", color: "#757575" }}>
-            Total Sensor Count: {node.data.tempCount}
-          </p>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   };
 
   return (
-    <div>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <div
         style={{
           display: "flex",
           justifyContent: "center",
-          marginBottom: "20px",
+          marginBottom: condensed ? "10px" : "20px",
         }}
       >
         <button
           onClick={() => setActiveView("voltages")}
           style={{
-            margin: "0 10px",
-            padding: "10px 20px",
-            backgroundColor: activeView === "voltages" ? "#1259c3" : "#ffffff",
-            color: activeView === "voltages" ? "#fff" : "#000000",
+            margin: "0 5px",
+            padding: condensed ? "5px 15px" : "10px 20px",
+            backgroundColor: activeView === "voltages" ? "#FF0000" : "#ffffff",
+            color: activeView === "voltages" ? "#fff" : "#333333",
             border: "none",
-            borderRadius: "25px", // Rounded corners for OneUI
+            borderRadius: "2px",
             cursor: "pointer",
             fontWeight: "600",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            fontSize: condensed ? "0.8rem" : "0.9rem"
           }}
         >
           Cell Voltages
@@ -165,39 +186,37 @@ const NodeTables = ({ nodeData }) => {
         <button
           onClick={() => setActiveView("temperatures")}
           style={{
-            margin: "0 10px",
-            padding: "10px 20px",
+            margin: "0 5px",
+            padding: condensed ? "5px 15px" : "10px 20px",
             backgroundColor:
-              activeView === "temperatures" ? "#1259c3" : "#ffffff",
-            color: activeView === "temperatures" ? "#fff" : "#000000",
+              activeView === "temperatures" ? "#FF0000" : "#ffffff",
+            color: activeView === "temperatures" ? "#fff" : "#333333",
             border: "none",
-            borderRadius: "25px", // Rounded corners for OneUI
+            borderRadius: "2px",
             cursor: "pointer",
             fontWeight: "600",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            fontSize: condensed ? "0.8rem" : "0.9rem"
           }}
         >
           Temperature Data
         </button>
       </div>
 
-      {/* Side-by-Side Tables */}
+      {/* Tables - Side by Side */}
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
-          margin: "0 -10px", // Compensate for margin between tables
-          flexWrap: "wrap", // Allow wrapping on small screens
+          flex: 1,
+          overflow: "auto",
         }}
       >
         {nodeData.map((node, index) => (
           <div
             key={index}
             style={{
-              display: "flex",
-              flex: "1 1 450px", // Allow responsive sizing
-              margin: "0 10px", // Add spacing between tables
-              minWidth: "300px", // Minimum width for readability
+              flex: 1,
+              margin: "0 5px",
             }}
           >
             {renderTable(activeView, node)}
@@ -206,6 +225,11 @@ const NodeTables = ({ nodeData }) => {
       </div>
     </div>
   );
+};
+
+NodeTables.propTypes = {
+  nodeData: PropTypes.array.isRequired,
+  condensed: PropTypes.bool
 };
 
 export default NodeTables;
