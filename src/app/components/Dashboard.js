@@ -1,39 +1,33 @@
 import React, { useEffect, useState } from "react";
-import { toast, ToastContainer } from "react-toastify"; // For popup notifications
-import "react-toastify/dist/ReactToastify.css"; // CSS for notifications
-import PropTypes from "prop-types"; // Add PropTypes for validation
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import PropTypes from "prop-types";
 import Sidebar from "./Sidebar.js";
 import TopBanner from "./TopBanner.js";
 import Cards from "./Cards.js";
 import Gauges from "./Gauges.js";
 import NodeTables from "./NodeTables.js";
 import LoadingSpinner from "./LoadingSpinner.js";
-import WeatherCard from "./WeatherCard.js"; // Import the WeatherCard component
+import WeatherCard from "./WeatherCard.js";
+import BatteryMetricsCarousel from "./BatteryMetricsCarousel.js";
 
 const Dashboard = ({ bmsData, signOut }) => {
   const [bmsState, setBmsState] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("cards"); // Track active tab
+  const [activeTab, setActiveTab] = useState("cards");
 
   useEffect(() => {
     console.log("bmsData:", bmsData);
-    if (
-      bmsData &&
-      bmsData.lastMinuteData &&
-      bmsData.lastMinuteData.length > 0
-    ) {
+    if (bmsData && bmsData.lastMinuteData && bmsData.lastMinuteData.length > 0) {
       console.log("Setting bmsState:", bmsData.lastMinuteData[0]);
       setBmsState(bmsData.lastMinuteData[0]);
     } else {
       console.error("bmsData is not in the expected format or is empty.");
-      toast.error(
-        "Backend returned null data. Displaying placeholder values.",
-        {
-          autoClose: 5000, // Popup disappears after 5 seconds
-          toastId: "null-data-warning", // Unique ID to prevent duplicate toasts
-        }
-      );
-      setBmsState({}); // Set bmsState to an empty object to avoid crashes
+      toast.error("Backend returned null data. Displaying placeholder values.", {
+        autoClose: 5000,
+        toastId: "null-data-warning",
+      });
+      setBmsState({});
     }
   }, [bmsData]);
 
@@ -46,14 +40,10 @@ const Dashboard = ({ bmsData, signOut }) => {
         balanceStatus: roundValue(bmsState?.Node00BalanceStatus?.N || "NaN"),
         totalVoltage: roundValue(bmsState?.Node00TotalVoltage?.N || "NaN"),
         cellVoltages: Array.from({ length: 14 }, (_, i) =>
-          roundValue(
-            bmsState?.[`Node00Cell${i < 10 ? `0${i}` : i}`]?.N || "NaN"
-          )
+          roundValue(bmsState?.[`Node00Cell${i < 10 ? `0${i}` : i}`]?.N || "NaN")
         ),
         temperatures: Array.from({ length: 6 }, (_, i) =>
-          roundValue(
-            bmsState?.[`Node00Temp${i < 10 ? `0${i}` : i}`]?.N || "NaN"
-          )
+          roundValue(bmsState?.[`Node00Temp${i < 10 ? `0${i}` : i}`]?.N || "NaN")
         ),
         tempCount: roundValue(bmsState?.Node00TempCount?.N || "NaN"),
       },
@@ -64,14 +54,10 @@ const Dashboard = ({ bmsData, signOut }) => {
         balanceStatus: roundValue(bmsState?.Node01BalanceStatus?.N || "NaN"),
         totalVoltage: roundValue(bmsState?.Node01TotalVoltage?.N || "NaN"),
         cellVoltages: Array.from({ length: 14 }, (_, i) =>
-          roundValue(
-            bmsState?.[`Node01Cell${i < 10 ? `0${i}` : i}`]?.N || "NaN"
-          )
+          roundValue(bmsState?.[`Node01Cell${i < 10 ? `0${i}` : i}`]?.N || "NaN")
         ),
         temperatures: Array.from({ length: 6 }, (_, i) =>
-          roundValue(
-            bmsState?.[`Node01Temp${i < 10 ? `0${i}` : i}`]?.N || "NaN"
-          )
+          roundValue(bmsState?.[`Node01Temp${i < 10 ? `0${i}` : i}`]?.N || "NaN")
         ),
         tempCount: roundValue(bmsState?.Node01TempCount?.N || "NaN"),
       },
@@ -86,13 +72,13 @@ const Dashboard = ({ bmsData, signOut }) => {
     <div
       style={{
         display: "flex",
-        minHeight: "100vh",
-        backgroundColor: "#f2f2f2", // OneUI light background color
-        fontFamily:
-          "SamsungOne, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+        height: "100vh",
+        overflow: "hidden",
+        backgroundColor: "#f2f2f2",
+        fontFamily: "Arial, sans-serif",
       }}
     >
-      <ToastContainer /> {/* For displaying popup notifications */}
+      <ToastContainer />
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -101,10 +87,11 @@ const Dashboard = ({ bmsData, signOut }) => {
       <div
         style={{
           flex: 1,
-          padding: "20px",
-          backgroundColor: "#f2f2f2", // OneUI light background color
+          padding: "10px",
           maxWidth: "calc(100% - 80px)",
-          overflow: "auto", // Allow vertical scrolling if needed
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
         }}
       >
         <TopBanner bmsState={bmsState} />
@@ -113,22 +100,24 @@ const Dashboard = ({ bmsData, signOut }) => {
         <div
           style={{
             display: "flex",
-            justifyContent: "center",
-            marginBottom: "20px",
+            justifyContent: "flex-start",
+            marginBottom: "10px",
+            marginTop: "10px",
           }}
         >
           <button
             onClick={() => setActiveTab("cards")}
             style={{
-              margin: "0 10px",
-              padding: "10px 20px",
-              backgroundColor: activeTab === "cards" ? "#1259c3" : "#ffffff",
-              color: activeTab === "cards" ? "#fff" : "#000000",
+              margin: "0 5px",
+              padding: "8px 16px",
+              backgroundColor: activeTab === "cards" ? "#8BC34A" : "#ffffff",
+              color: activeTab === "cards" ? "#fff" : "#333333",
               border: "none",
-              borderRadius: "25px", // Rounded corners for OneUI
+              borderRadius: "2px",
               cursor: "pointer",
               fontWeight: "600",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              fontSize: "0.85rem",
             }}
           >
             System Overview
@@ -136,98 +125,157 @@ const Dashboard = ({ bmsData, signOut }) => {
           <button
             onClick={() => setActiveTab("tables")}
             style={{
-              margin: "0 10px",
-              padding: "10px 20px",
-              backgroundColor: activeTab === "tables" ? "#1259c3" : "#ffffff",
-              color: activeTab === "tables" ? "#fff" : "#000000",
+              margin: "0 5px",
+              padding: "8px 16px",
+              backgroundColor: activeTab === "tables" ? "#8BC34A" : "#ffffff",
+              color: activeTab === "tables" ? "#fff" : "#333333",
               border: "none",
-              borderRadius: "25px", // Rounded corners for OneUI
+              borderRadius: "2px",
               cursor: "pointer",
               fontWeight: "600",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              fontSize: "0.85rem",
             }}
           >
             Detailed Data
           </button>
         </div>
 
-        {/* Tab Content */}
+        {/* Main Content */}
         <div
           style={{
+            flex: 1,
             display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+            overflow: "hidden",
           }}
         >
           {activeTab === "cards" ? (
             <>
-              {/* Cards Section */}
+              {/* Left Section - Combined Battery Status and Battery Performance (30% width) */}
               <div
                 style={{
-                  backgroundColor: "#fff", // White background for cards
-                  borderRadius: "15px", // Rounded corners for OneUI
-                  padding: "20px",
-                  boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
-                  marginBottom: "20px",
-                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  width: "30%",
+                  minWidth: "300px",
+                  marginRight: "10px",
+                  gap: "10px",
                 }}
               >
-                <h2
+                {/* Battery Status Section */}
+                <div
                   style={{
-                    color: "#1259c3",
-                    marginBottom: "15px",
-                    fontWeight: "600",
-                    fontSize: "1.5rem",
+                    backgroundColor: "#fff",
+                    borderRadius: "4px",
+                    padding: "15px",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
+                    flex: 1,
+                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
-                  Battery Status
-                </h2>
-                <Cards bmsState={bmsState} roundValue={roundValue} />
+                  <h2
+                    style={{
+                      color: "#333",
+                      marginBottom: "15px",
+                      fontWeight: "600",
+                      fontSize: "1.2rem",
+                      borderBottom: "1px solid #eee",
+                      paddingBottom: "5px",
+                    }}
+                  >
+                    Battery Status
+                  </h2>
+                  <Cards bmsState={bmsState} roundValue={roundValue} />
+                  
+                  {/* Battery Performance Section */}
+                  <div style={{ marginTop: "15px", flex: 1 }}>
+                    <h2
+                      style={{
+                        color: "#333",
+                        marginBottom: "15px",
+                        fontWeight: "600",
+                        fontSize: "1.2rem",
+                        borderBottom: "1px solid #eee",
+                        paddingBottom: "5px",
+                      }}
+                    >
+                      Battery Performance
+                    </h2>
+                    <div style={{ flex: 1 }}>
+                      <Gauges 
+                        bmsState={bmsState} 
+                        roundValue={roundValue}
+                        containerStyle={{
+                          height: "100%",
+                          display: "flex",
+                          flexDirection: "column",
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Gauges Section */}
+              {/* Right Section - Main Content (70% width) */}
               <div
                 style={{
-                  backgroundColor: "#fff", // White background for gauges
-                  borderRadius: "15px", // Rounded corners for OneUI
-                  padding: "20px",
-                  boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
-                  width: "100%",
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  minWidth: "0",
+                  gap: "10px",
                 }}
               >
-                <h2
-                  style={{
-                    color: "#1259c3",
-                    marginBottom: "15px",
-                    fontWeight: "600",
-                    fontSize: "1.5rem",
-                  }}
-                >
-                  System Metrics
-                </h2>
-                {/* Weather Card and Gauges */}
+                {/* Top Row - Weather Card and System Metrics */}
                 <div
                   style={{
                     display: "flex",
-                    flexWrap: "wrap",
-                    gap: "10px", // Reduced gap between items
-                    justifyContent: "space-between", // Align items properly
-                    width: "100%", // Ensure the container takes full width
+                    flex: 1,
+                    gap: "10px",
+                    minHeight: 0,
                   }}
                 >
-                  {/* WeatherCard with fixed width */}
-                  <div style={{ flex: "1 1 300px", maxWidth: "300px" }}>
-                    <WeatherCard city="Sydney" />
+                  {/* Weather Card - reduced width */}
+                  <div style={{ 
+                    flex: 0.35,  // Reduced width (35% of right section)
+                    minWidth: 0,
+                  }}>
+                    <WeatherCard city="Brisbane" />
                   </div>
 
-                  {/* Gauges with flexible width */}
+                  {/* System Metrics Section */}
                   <div
                     style={{
-                      flex: "2 1 600px",
-                      maxWidth: "calc(100% - 320px)",
+                      flex: 0.65,  // Takes remaining space (65% of right section)
+                      backgroundColor: "#fff",
+                      borderRadius: "4px",
+                      padding: "15px",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
+                      display: "flex",
+                      flexDirection: "column",
+                      minHeight: 0,
                     }}
                   >
-                    <Gauges bmsState={bmsState} roundValue={roundValue} />
+                    <h2
+                      style={{
+                        color: "#333",
+                        marginBottom: "15px",
+                        fontWeight: "600",
+                        fontSize: "1.2rem",
+                        borderBottom: "1px solid #eee",
+                        paddingBottom: "5px",
+                      }}
+                    >
+                      System Metrics
+                    </h2>
+                    <div style={{ 
+                      flex: 1,
+                      minHeight: 0,
+                    }}>
+                      <BatteryMetricsCarousel bmsState={bmsState} roundValue={roundValue} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -236,19 +284,22 @@ const Dashboard = ({ bmsData, signOut }) => {
             /* Tables Section */
             <div
               style={{
-                backgroundColor: "#fff", // White background for tables
-                borderRadius: "15px", // Rounded corners for OneUI
-                padding: "20px",
-                boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
-                width: "100%",
+                backgroundColor: "#fff",
+                borderRadius: "4px",
+                padding: "15px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
+                flex: 1,
+                overflow: "hidden",
               }}
             >
               <h2
                 style={{
-                  color: "#1259c3",
+                  color: "#333",
                   marginBottom: "15px",
                   fontWeight: "600",
-                  fontSize: "1.5rem",
+                  fontSize: "1.2rem",
+                  borderBottom: "1px solid #eee",
+                  paddingBottom: "5px",
                 }}
               >
                 Cell & Temperature Data
@@ -262,7 +313,6 @@ const Dashboard = ({ bmsData, signOut }) => {
   );
 };
 
-// Add PropTypes for validation
 Dashboard.propTypes = {
   bmsData: PropTypes.object,
   signOut: PropTypes.func.isRequired,

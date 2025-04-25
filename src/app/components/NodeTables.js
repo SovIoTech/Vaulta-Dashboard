@@ -59,12 +59,13 @@ const NodeTables = ({ nodeData, condensed = false }) => {
       <div
         style={{
           background: "#fff",
-          borderRadius: "2px",
-          padding: condensed ? "10px" : "20px",
-          marginBottom: condensed ? "10px" : "20px",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+          borderRadius: "4px",
+          padding: condensed ? "10px" : "15px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
           flex: 1,
           margin: "0 5px",
+          height: "100%",
+          overflow: "auto"
         }}
       >
         <h3
@@ -72,12 +73,14 @@ const NodeTables = ({ nodeData, condensed = false }) => {
             fontWeight: "600",
             marginBottom: "10px",
             color: "#333333",
-            fontSize: condensed ? "0.95rem" : "1.1rem"
+            fontSize: condensed ? "0.95rem" : "1.1rem",
+            borderBottom: "1px solid #eee",
+            paddingBottom: "5px"
           }}
         >
           {node.node} {dataType === "voltages" ? "Cell Voltages" : "Temperatures"}
         </h3>
-        <div style={{ maxHeight: condensed ? "300px" : "none", overflow: "auto" }}>
+        <div style={{ height: condensed ? "auto" : "calc(100% - 40px)", overflow: "auto" }}>
           <table
             style={{
               width: "100%",
@@ -163,15 +166,15 @@ const NodeTables = ({ nodeData, condensed = false }) => {
         style={{
           display: "flex",
           justifyContent: "center",
-          marginBottom: condensed ? "10px" : "20px",
+          marginBottom: condensed ? "10px" : "15px",
         }}
       >
         <button
           onClick={() => setActiveView("voltages")}
           style={{
             margin: "0 5px",
-            padding: condensed ? "5px 15px" : "10px 20px",
-            backgroundColor: activeView === "voltages" ? "#FF0000" : "#ffffff",
+            padding: condensed ? "5px 15px" : "8px 16px",
+            backgroundColor: activeView === "voltages" ? "#8BC34A" : "#ffffff",
             color: activeView === "voltages" ? "#fff" : "#333333",
             border: "none",
             borderRadius: "2px",
@@ -187,9 +190,8 @@ const NodeTables = ({ nodeData, condensed = false }) => {
           onClick={() => setActiveView("temperatures")}
           style={{
             margin: "0 5px",
-            padding: condensed ? "5px 15px" : "10px 20px",
-            backgroundColor:
-              activeView === "temperatures" ? "#FF0000" : "#ffffff",
+            padding: condensed ? "5px 15px" : "8px 16px",
+            backgroundColor: activeView === "temperatures" ? "#8BC34A" : "#ffffff",
             color: activeView === "temperatures" ? "#fff" : "#333333",
             border: "none",
             borderRadius: "2px",
@@ -208,7 +210,8 @@ const NodeTables = ({ nodeData, condensed = false }) => {
         style={{
           display: "flex",
           flex: 1,
-          overflow: "auto",
+          overflow: "hidden",
+          height: "calc(100% - 50px)",
         }}
       >
         {nodeData.map((node, index) => (
@@ -217,6 +220,7 @@ const NodeTables = ({ nodeData, condensed = false }) => {
             style={{
               flex: 1,
               margin: "0 5px",
+              height: "100%",
             }}
           >
             {renderTable(activeView, node)}
