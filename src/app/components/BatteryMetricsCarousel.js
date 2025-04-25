@@ -3,15 +3,20 @@ import PropTypes from "prop-types";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 
-const BatteryMetricsCarousel = ({ bmsState, roundValue, containerRef }) => {
-  // Helper function to calculate fill color based on value and max/min
+const BatteryMetricsCarousel = ({
+  bmsState,
+  roundValue,
+  containerRef,
+  colors = {},
+}) => {
+  // Helper function to calculate fill color based on value and max
   const calculateColor = (value, max) => {
     const percentage = (value / max) * 100;
-    
-    if (percentage >= 90) return "#8BC34A"; // Green for high values (good)
-    if (percentage >= 60) return "#FFC107"; // Yellow for medium values
-    if (percentage >= 30) return "#FF9800"; // Orange for lower values
-    return "#dddddd"; // Grey for very low values
+
+    if (percentage >= 90) return colors.accentGreen || "#8BC34A";
+    if (percentage >= 60) return colors.highlight || "#FFC107";
+    if (percentage >= 30) return colors.primary || "#FF9800";
+    return colors.secondary || "#dddddd";
   };
 
   // Define the metrics cards data
@@ -21,9 +26,11 @@ const BatteryMetricsCarousel = ({ bmsState, roundValue, containerRef }) => {
       value: parseFloat(bmsState.SOCPercent?.N || 0),
       maxValue: 100,
       unit: "%",
-      additionalInfo: `${roundValue(bmsState.SOCAh?.N || 0)} of ${roundValue(14)} kWh`,
+      additionalInfo: `${roundValue(bmsState.SOCAh?.N || 0)} of ${roundValue(
+        14
+      )} kWh`,
       status: "Charging • +4000W • 0.4C",
-      statusColor: "#8BC34A"
+      statusColor: colors.accentGreen || "#8BC34A",
     },
     {
       title: "State of Balance",
@@ -32,7 +39,7 @@ const BatteryMetricsCarousel = ({ bmsState, roundValue, containerRef }) => {
       unit: "%",
       additionalInfo: "MIN 3.35V • AVE 3.35V • MAX 3.37V",
       status: "All cells within optimal range",
-      statusColor: "#8BC34A"
+      statusColor: colors.accentGreen || "#8BC34A",
     },
     {
       title: "Battery Temperature",
@@ -41,7 +48,7 @@ const BatteryMetricsCarousel = ({ bmsState, roundValue, containerRef }) => {
       unit: "°C",
       additionalInfo: "MIN 35.5°C • MAX 37.5°C",
       status: "Temperature within safe range",
-      statusColor: "#8BC34A"
+      statusColor: colors.accentGreen || "#8BC34A",
     },
     {
       title: "State of Health",
@@ -50,78 +57,100 @@ const BatteryMetricsCarousel = ({ bmsState, roundValue, containerRef }) => {
       unit: "%",
       additionalInfo: "System Up-time: 99%",
       status: "Battery in excellent condition",
-      statusColor: "#8BC34A"
-    }
+      statusColor: colors.accentGreen || "#8BC34A",
+    },
   ];
 
+  // Create a single metric card
+  const MetricCard = ({ metric }) => (
+    <div
+      style={{
+        backgroundColor: "#fff",
+        borderRadius: "8px",
+        padding: "15px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        border: `1px solid ${colors.secondary || "#e0e0e0"}`,
+        transition: "all 0.3s ease",
+        height: "100%",
+        // Increased card size by 30%
+        transform: "scale(1.3)",
+        transformOrigin: "center",
+        margin: "15%",
+      }}
+    >
+      <h3
+        style={{
+          fontSize: "1.1rem",
+          marginBottom: "8px",
+          textAlign: "center",
+          color: colors.textDark || "#333",
+          fontWeight: "600",
+        }}
+      >
+        {metric.title}
+      </h3>
+
+      <div
+        style={{
+          width: "80%",
+          maxWidth: "120px",
+          margin: "0 auto 8px auto",
+        }}
+      >
+        <CircularProgressbar
+          value={metric.value}
+          text={`${roundValue(metric.value)}${metric.unit}`}
+          styles={buildStyles({
+            textSize: "22px",
+            pathColor: calculateColor(metric.value, metric.maxValue),
+            textColor: colors.textDark || "#333",
+            trailColor: "#eee",
+            pathTransitionDuration: 0.5,
+          })}
+        />
+      </div>
+
+      <div
+        style={{
+          fontSize: "0.9rem",
+          color: colors.textLight || "#666",
+          textAlign: "center",
+          marginBottom: "5px",
+          fontWeight: "500",
+        }}
+      >
+        {metric.additionalInfo}
+      </div>
+
+      <div
+        style={{
+          fontSize: "0.85rem",
+          color: metric.statusColor,
+          fontWeight: "bold",
+          textAlign: "center",
+        }}
+      >
+        {metric.status}
+      </div>
+    </div>
+  );
+
   return (
-    <div style={{ 
-      height: "100%",
-      display: "grid",
-      gridTemplateColumns: "repeat(2, 1fr)",
-      gridTemplateRows: "repeat(2, 1fr)",
-      gap: "15px",
-      padding: "10px"
-    }}>
+    <div
+      style={{
+        height: "100%",
+        display: "grid",
+        gridTemplateColumns: "repeat(2, 1fr)",
+        gridTemplateRows: "repeat(2, 1fr)",
+        gap: "5px",
+        padding: "5px",
+      }}
+    >
       {metricsData.map((metric, index) => (
-        <div 
-          key={index}
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: "8px",
-            padding: "15px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-        >
-          <h3 style={{ 
-            fontSize: "0.9rem", 
-            marginBottom: "8px",
-            textAlign: "center",
-            color: "#333"
-          }}>
-            {metric.title}
-          </h3>
-          
-          <div style={{
-            width: "80%",
-            maxWidth: "120px",
-            margin: "0 auto 8px auto"
-          }}>
-            <CircularProgressbar
-              value={metric.value}
-              text={`${roundValue(metric.value)}${metric.unit}`}
-              styles={buildStyles({
-                textSize: '20px',
-                pathColor: calculateColor(metric.value, metric.maxValue),
-                textColor: "#333",
-                trailColor: "#eee",
-                pathTransitionDuration: 0.5
-              })}
-            />
-          </div>
-          
-          <div style={{ 
-            fontSize: "0.8rem", 
-            color: "#666",
-            textAlign: "center",
-            marginBottom: "5px"
-          }}>
-            {metric.additionalInfo}
-          </div>
-          
-          <div style={{ 
-            fontSize: "0.75rem", 
-            color: metric.statusColor,
-            fontWeight: "bold",
-            textAlign: "center"
-          }}>
-            {metric.status}
-          </div>
-        </div>
+        <MetricCard key={index} metric={metric} />
       ))}
     </div>
   );
@@ -130,7 +159,8 @@ const BatteryMetricsCarousel = ({ bmsState, roundValue, containerRef }) => {
 BatteryMetricsCarousel.propTypes = {
   bmsState: PropTypes.object.isRequired,
   roundValue: PropTypes.func.isRequired,
-  containerRef: PropTypes.object
+  containerRef: PropTypes.object,
+  colors: PropTypes.object,
 };
 
 export default BatteryMetricsCarousel;

@@ -1,13 +1,25 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 
-const NodeTables = ({ nodeData, condensed = false }) => {
+const NodeTables = ({ nodeData, condensed = false, colors = {} }) => {
   const [activeView, setActiveView] = useState("voltages");
+
+  // Define colors using provided colors object or fallback to defaults
+  const tableColors = {
+    textDark: colors.textDark || "#333333",
+    textLight: colors.textLight || "#666666",
+    primary: colors.primary || "#818181",
+    secondary: colors.secondary || "#c0c0c0",
+    accentGreen: colors.accentGreen || "#8BC34A",
+    accentRed: colors.accentRed || "#FF0000",
+    highlight: colors.highlight || "#FFC107",
+    background: colors.background || "rgba(192, 192, 192, 0.1)",
+  };
 
   // Renders status cell with color
   const renderStatus = (value, dataType) => {
     let status, statusClass;
-    
+
     if (dataType === "voltages") {
       if (value > 4.2) {
         status = "ERROR";
@@ -19,7 +31,8 @@ const NodeTables = ({ nodeData, condensed = false }) => {
         status = "OK";
         statusClass = "ok";
       }
-    } else { // temperatures
+    } else {
+      // temperatures
       if (value > 45) {
         status = "ERROR";
         statusClass = "error";
@@ -31,11 +44,14 @@ const NodeTables = ({ nodeData, condensed = false }) => {
         statusClass = "ok";
       }
     }
-    
+
     return (
       <div
         style={{
-          backgroundColor: statusClass === "ok" ? "#8BC34A" : "#FF0000",
+          backgroundColor:
+            statusClass === "ok"
+              ? tableColors.accentGreen
+              : tableColors.accentRed,
           color: "white",
           padding: condensed ? "2px 5px" : "5px 10px",
           borderRadius: "2px",
@@ -43,7 +59,7 @@ const NodeTables = ({ nodeData, condensed = false }) => {
           fontWeight: "600",
           display: "inline-block",
           textAlign: "center",
-          minWidth: condensed ? "40px" : "60px"
+          minWidth: condensed ? "40px" : "60px",
         }}
       >
         {status}
@@ -59,43 +75,50 @@ const NodeTables = ({ nodeData, condensed = false }) => {
       <div
         style={{
           background: "#fff",
-          borderRadius: "4px",
+          borderRadius: "8px",
           padding: condensed ? "10px" : "15px",
           boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
           flex: 1,
           margin: "0 5px",
           height: "100%",
-          overflow: "auto"
+          overflow: "auto",
+          border: `1px solid ${tableColors.secondary}`,
         }}
       >
         <h3
           style={{
             fontWeight: "600",
             marginBottom: "10px",
-            color: "#333333",
+            color: tableColors.textDark,
             fontSize: condensed ? "0.95rem" : "1.1rem",
-            borderBottom: "1px solid #eee",
-            paddingBottom: "5px"
+            borderBottom: `1px solid ${tableColors.secondary}`,
+            paddingBottom: "5px",
           }}
         >
-          {node.node} {dataType === "voltages" ? "Cell Voltages" : "Temperatures"}
+          {node.node}{" "}
+          {dataType === "voltages" ? "Cell Voltages" : "Temperatures"}
         </h3>
-        <div style={{ height: condensed ? "auto" : "calc(100% - 40px)", overflow: "auto" }}>
+        <div
+          style={{
+            height: condensed ? "auto" : "calc(100% - 40px)",
+            overflow: "auto",
+          }}
+        >
           <table
             style={{
               width: "100%",
               textAlign: "left",
               borderCollapse: "collapse",
-              fontSize: condensed ? "0.8rem" : "0.9rem"
+              fontSize: condensed ? "0.8rem" : "0.9rem",
             }}
           >
             <thead>
-              <tr style={{ backgroundColor: "#f5f5f5" }}>
+              <tr style={{ backgroundColor: tableColors.background }}>
                 <th
                   style={{
                     padding: condensed ? "5px 8px" : "8px 12px",
-                    border: "1px solid #e0e0e0",
-                    color: "#333333",
+                    border: `1px solid ${tableColors.secondary}`,
+                    color: tableColors.textDark,
                   }}
                 >
                   {dataType === "voltages" ? "Cell" : "Sensor"}
@@ -103,8 +126,8 @@ const NodeTables = ({ nodeData, condensed = false }) => {
                 <th
                   style={{
                     padding: condensed ? "5px 8px" : "8px 12px",
-                    border: "1px solid #e0e0e0",
-                    color: "#333333",
+                    border: `1px solid ${tableColors.secondary}`,
+                    color: tableColors.textDark,
                   }}
                 >
                   {dataType === "voltages" ? "Voltage (V)" : "Temperature (°C)"}
@@ -112,9 +135,9 @@ const NodeTables = ({ nodeData, condensed = false }) => {
                 <th
                   style={{
                     padding: condensed ? "5px 8px" : "8px 12px",
-                    border: "1px solid #e0e0e0",
-                    color: "#333333",
-                    textAlign: "center"
+                    border: `1px solid ${tableColors.secondary}`,
+                    color: tableColors.textDark,
+                    textAlign: "center",
                   }}
                 >
                   Status
@@ -127,8 +150,8 @@ const NodeTables = ({ nodeData, condensed = false }) => {
                   <td
                     style={{
                       padding: condensed ? "4px 8px" : "8px 12px",
-                      border: "1px solid #e0e0e0",
-                      color: "#333333",
+                      border: `1px solid ${tableColors.secondary}`,
+                      color: tableColors.textDark,
                     }}
                   >
                     {dataType === "voltages" ? `Cell ${i}` : `Sensor ${i}`}
@@ -136,8 +159,8 @@ const NodeTables = ({ nodeData, condensed = false }) => {
                   <td
                     style={{
                       padding: condensed ? "4px 8px" : "8px 12px",
-                      border: "1px solid #e0e0e0",
-                      color: "#333333",
+                      border: `1px solid ${tableColors.secondary}`,
+                      color: tableColors.textDark,
                     }}
                   >
                     {value}
@@ -145,8 +168,8 @@ const NodeTables = ({ nodeData, condensed = false }) => {
                   <td
                     style={{
                       padding: condensed ? "4px 8px" : "8px 12px",
-                      border: "1px solid #e0e0e0",
-                      textAlign: "center"
+                      border: `1px solid ${tableColors.secondary}`,
+                      textAlign: "center",
                     }}
                   >
                     {renderStatus(value, dataType)}
@@ -174,14 +197,15 @@ const NodeTables = ({ nodeData, condensed = false }) => {
           style={{
             margin: "0 5px",
             padding: condensed ? "5px 15px" : "8px 16px",
-            backgroundColor: activeView === "voltages" ? "#8BC34A" : "#ffffff",
-            color: activeView === "voltages" ? "#fff" : "#333333",
+            backgroundColor:
+              activeView === "voltages" ? tableColors.accentGreen : "#ffffff",
+            color: activeView === "voltages" ? "#fff" : tableColors.textDark,
             border: "none",
             borderRadius: "2px",
             cursor: "pointer",
             fontWeight: "600",
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            fontSize: condensed ? "0.8rem" : "0.9rem"
+            fontSize: condensed ? "0.8rem" : "0.9rem",
           }}
         >
           Cell Voltages
@@ -191,14 +215,18 @@ const NodeTables = ({ nodeData, condensed = false }) => {
           style={{
             margin: "0 5px",
             padding: condensed ? "5px 15px" : "8px 16px",
-            backgroundColor: activeView === "temperatures" ? "#8BC34A" : "#ffffff",
-            color: activeView === "temperatures" ? "#fff" : "#333333",
+            backgroundColor:
+              activeView === "temperatures"
+                ? tableColors.accentGreen
+                : "#ffffff",
+            color:
+              activeView === "temperatures" ? "#fff" : tableColors.textDark,
             border: "none",
             borderRadius: "2px",
             cursor: "pointer",
             fontWeight: "600",
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            fontSize: condensed ? "0.8rem" : "0.9rem"
+            fontSize: condensed ? "0.8rem" : "0.9rem",
           }}
         >
           Temperature Data
@@ -233,7 +261,8 @@ const NodeTables = ({ nodeData, condensed = false }) => {
 
 NodeTables.propTypes = {
   nodeData: PropTypes.array.isRequired,
-  condensed: PropTypes.bool
+  condensed: PropTypes.bool,
+  colors: PropTypes.object,
 };
 
 export default NodeTables;
