@@ -82,7 +82,7 @@ const WeatherCard = ({ city, containerRef }) => {
         fill: true,
         pointBackgroundColor: (context) => {
           const value = context.dataset.data[context.dataIndex];
-          return colors.accentGreen;
+          return colors.primary;
         },
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
@@ -175,7 +175,7 @@ const WeatherCard = ({ city, containerRef }) => {
       height: "100%",
       display: "flex",
       flexDirection: "column",
-      border: `1px solid ${colors.secondary}`,
+      border: `1px solid ${colors.primary}`,
       position: 'relative',
       overflow: 'hidden',
       '&:hover': {
@@ -218,14 +218,14 @@ const WeatherCard = ({ city, containerRef }) => {
             display: 'flex',
             alignItems: 'center'
           }}>
-            <span style={{
+            {/* <span style={{
               display: 'inline-block',
               width: '8px',
               height: '8px',
               backgroundColor: colors.accentGreen,
               borderRadius: '50%',
               marginRight: '8px'
-            }}></span>
+            }}></span> */}
             {city} Weather
           </h2>
           <p style={{
@@ -235,10 +235,10 @@ const WeatherCard = ({ city, containerRef }) => {
             display: 'flex',
             alignItems: 'center'
           }}>
-            <span style={{ 
+            {/* <span style={{ 
               marginRight: '6px',
               color: colors.accentGreen
-            }}>⬤</span>
+            }}>⬤</span> */}
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
         </div>
@@ -258,9 +258,9 @@ const WeatherCard = ({ city, containerRef }) => {
               fontSize: "2rem",
               fontWeight: "700",
               color: colors.textDark,
-              background: `linear-gradient(135deg, ${colors.accentGreen}, ${colors.accentBlue})`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
+              // background: `linear-gradient(135deg, ${colors.accentGreen}, ${colors.accentBlue})`,
+              // WebkitBackgroundClip: 'text',
+              // WebkitTextFillColor: 'transparent'
             }}>
               {weatherData.current.temp}°C
             </span>
@@ -386,7 +386,7 @@ const WeatherCard = ({ city, containerRef }) => {
             display: "inline-block",
             width: "14px",
             height: "14px",
-            backgroundColor: colors.highlight,
+            backgroundColor: colors.primary,
             marginRight: "10px",
             borderRadius: "3px"
           }}></span>
@@ -420,7 +420,7 @@ const WeatherCard = ({ city, containerRef }) => {
             display: "inline-block",
             width: "14px",
             height: "14px",
-            backgroundColor: colors.accentGreen,
+            backgroundColor: colors.primary,
             marginRight: "10px",
             borderRadius: "3px"
           }}></span>
