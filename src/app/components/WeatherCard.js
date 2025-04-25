@@ -1,265 +1,451 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { Line, Bar } from "react-chartjs-2";
 import {
-  FaSun,
-  FaCloud,
-  FaCloudRain,
-  FaSnowflake,
-  FaBolt,
-  FaTint,
-  FaUmbrella,
-  FaTemperatureHigh,
-  FaTemperatureLow,
-} from "react-icons/fa";
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+} from 'chart.js';
 
-const WeatherCard = ({ city = "Brisbane" }) => {
-  const [weatherData, setWeatherData] = useState(null);
-  const [forecastData, setForecastData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
-  // Fetch current weather and forecast data
-  useEffect(() => {
-    const apiKey = "e56fb560ded28bd88a332ffe3594edaf";
-    const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
-    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`;
+const WeatherCard = ({ city, containerRef }) => {
+  // Enhanced color scheme
+  const colors = {
+    primary: '#818181',       // Base gray
+    secondary: '#c0c0c0',     // Light gray
+    accentGreen: '#4CAF50',   // Vibrant green
+    accentRed: '#F44336',     // Strategic red
+    accentBlue: '#2196F3',    // Complementary blue
+    background: 'rgba(192, 192, 192, 0.1)',
+    textDark: '#333333',
+    textLight: '#555555',
+    highlight: '#FFC107'      // Accent yellow
+  };
 
-    Promise.all([
-      fetch(currentWeatherUrl).then(res => res.json()),
-      fetch(forecastUrl).then(res => res.json())
-    ])
-      .then(([currentData, forecastData]) => {
-        if (currentData.cod === 200 && forecastData.cod === "200") {
-          setWeatherData(currentData);
-          setForecastData(forecastData);
-        } else {
-          setError(currentData.message || forecastData.message || "Failed to fetch weather data.");
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching weather data:", err);
-        setError("Failed to fetch weather data.");
-        setLoading(false);
-      });
-  }, [city]);
+  // Sample weather data with dynamic conditions
+  const weatherData = {
+    current: {
+      temp: 28,
+      condition: "Sunny",
+      humidity: 65,
+      windSpeed: 12,
+      icon: "☀️",
+      alert: false
+    },
+    forecast: [
+      { hour: "6AM", temp: 22, precip: 0 },
+      { hour: "9AM", temp: 25, precip: 0 },
+      { hour: "12PM", temp: 28, precip: 0 },
+      { hour: "3PM", temp: 30, precip: 5 },
+      { hour: "6PM", temp: 27, precip: 15 },
+      { hour: "9PM", temp: 24, precip: 10 },
+      { hour: "12AM", temp: 22, precip: 5 },
+    ]
+  };
 
-  // Get min/max temps for last/next 24 hours from forecast data
-  const get24HourTemps = () => {
-    if (!forecastData) return { last24: {}, next24: {} };
-    
-    const now = new Date();
-    const last24 = [];
-    const next24 = [];
-    
-    forecastData.list.forEach(item => {
-      const itemDate = new Date(item.dt * 1000);
-      const hoursDiff = (now - itemDate) / (1000 * 60 * 60);
-      
-      if (hoursDiff <= 24 && hoursDiff >= 0) {
-        last24.push(item.main.temp);
-      } else if (hoursDiff >= -24 && hoursDiff < 0) {
-        next24.push(item.main.temp);
+  // Temperature chart data with dynamic coloring
+  const tempChartData = {
+    labels: weatherData.forecast.map(item => item.hour),
+    datasets: [
+      {
+        label: "Temperature (°C)",
+        data: weatherData.forecast.map(item => item.temp),
+        borderColor: colors.primary,
+        backgroundColor: (context) => {
+          const ctx = context.chart.ctx;
+          const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+          gradient.addColorStop(0, 'rgba(55, 58, 55, 0.3)');  // Green
+          gradient.addColorStop(0.5, 'rgba(156, 154, 148, 0.3)'); // Yellow
+          gradient.addColorStop(1, 'rgba(220, 212, 211, 0.3)');  // Red
+          return gradient;
+        },
+        borderWidth: 3,
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: (context) => {
+          const value = context.dataset.data[context.dataIndex];
+          return colors.accentGreen;
+        },
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7
       }
-    });
-    
-    return {
-      last24: {
-        min: Math.min(...last24),
-        max: Math.max(...last24),
-        avg: last24.reduce((a, b) => a + b, 0) / last24.length
+    ]
+  };
+
+  // Precipitation chart data with enhanced visuals
+  const precipChartData = {
+    labels: weatherData.forecast.map(item => item.hour),
+    datasets: [
+      {
+        label: "Precipitation (%)",
+        data: weatherData.forecast.map(item => item.precip),
+        backgroundColor: (context) => {
+          const value = context.dataset.data[context.dataIndex];
+          return colors.secondary;
+          
+        },
+        borderColor: colors.primary,
+        borderWidth: 1,
+        borderRadius: 6,
+        hoverBackgroundColor: colors.primary
+      }
+    ]
+  };
+
+  // Enhanced chart options
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
       },
-      next24: {
-        min: Math.min(...next24),
-        max: Math.max(...next24),
-        avg: next24.reduce((a, b) => a + b, 0) / next24.length
-      }
-    };
-  };
-
-  // Get rain forecast
-  const getRainForecast = () => {
-    if (!forecastData) return { last24: 0, next24: 0 };
-    
-    let last24Rain = 0;
-    let next24Rain = 0;
-    
-    forecastData.list.forEach(item => {
-      const itemDate = new Date(item.dt * 1000);
-      const hoursDiff = (new Date() - itemDate) / (1000 * 60 * 60);
-      
-      if (item.rain && item.rain["3h"]) {
-        if (hoursDiff <= 24 && hoursDiff >= 0) {
-          last24Rain += item.rain["3h"];
-        } else if (hoursDiff >= -24 && hoursDiff < 0) {
-          next24Rain += item.rain["3h"];
+      tooltip: {
+        backgroundColor: colors.textDark,
+        titleFont: {
+          size: 14,
+          weight: "bold"
+        },
+        bodyFont: {
+          size: 12
+        },
+        padding: 12,
+        usePointStyle: true,
+        callbacks: {
+          label: function(context) {
+            return `${context.dataset.label}: ${context.raw}`;
+          }
         }
       }
-    });
-    
-    return { last24: last24Rain, next24: next24Rain };
-  };
-
-  const renderWeatherIcon = (weatherCondition) => {
-    switch (weatherCondition) {
-      case "Clear": return <FaSun size={48} color="#FFC107" />;
-      case "Clouds": return <FaCloud size={48} color="#757575" />;
-      case "Rain": case "Drizzle": return <FaCloudRain size={48} color="#1259c3" />;
-      case "Snow": return <FaSnowflake size={48} color="#00BCD4" />;
-      case "Thunderstorm": return <FaBolt size={48} color="#F44336" />;
-      default: return <FaCloud size={48} color="#757575" />;
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false,
+          drawBorder: false
+        },
+        ticks: {
+          color: colors.textLight,
+          font: {
+            weight: '500'
+          }
+        }
+      },
+      y: {
+        grid: {
+          color: colors.background,
+          drawBorder: false
+        },
+        ticks: {
+          color: colors.textLight,
+          font: {
+            weight: '500'
+          }
+        }
+      }
     }
   };
 
-  if (loading) {
-    return <div className="weather-card">Loading weather data...</div>;
-  }
-
-  if (error) {
-    return <div className="weather-card error">Error: {error}</div>;
-  }
-
-  const temps = get24HourTemps();
-  const rain = getRainForecast();
-
   return (
-    <div className="weather-card expanded">
-      <h3>Weather in {city}</h3>
-      
-      <div className="weather-icon">
-        {renderWeatherIcon(weatherData?.weather[0]?.main)}
-        <div className="current-temp">{weatherData?.main?.temp}°C</div>
-        <div className="weather-desc">{weatherData?.weather[0]?.description}</div>
+    <div style={{
+      backgroundColor: "#fff",
+      borderRadius: "12px",
+      padding: "20px",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      border: `1px solid ${colors.secondary}`,
+      position: 'relative',
+      overflow: 'hidden',
+      '&:hover': {
+        boxShadow: "0 6px 16px rgba(0,0,0,0.15)"
+      }
+    }}>
+      {/* Alert badge if needed */}
+      {weatherData.current.alert && (
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          backgroundColor: colors.accentRed,
+          color: 'white',
+          padding: '4px 8px',
+          borderRadius: '12px',
+          fontSize: '0.7rem',
+          fontWeight: 'bold'
+        }}>
+          ALERT
+        </div>
+      )}
+
+      {/* Current Weather Header */}
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "20px",
+        borderBottom: `1px solid ${colors.secondary}`,
+        paddingBottom: "15px"
+      }}>
+        <div>
+          <h2 style={{
+            fontSize: "1.3rem",
+            fontWeight: "700",
+            color: colors.textDark,
+            margin: 0,
+            letterSpacing: "0.5px",
+            display: 'flex',
+            alignItems: 'center'
+          }}>
+            <span style={{
+              display: 'inline-block',
+              width: '8px',
+              height: '8px',
+              backgroundColor: colors.accentGreen,
+              borderRadius: '50%',
+              marginRight: '8px'
+            }}></span>
+            {city} Weather
+          </h2>
+          <p style={{
+            fontSize: "0.95rem",
+            color: colors.textLight,
+            margin: "8px 0 0 0",
+            display: 'flex',
+            alignItems: 'center'
+          }}>
+            <span style={{ 
+              marginRight: '6px',
+              color: colors.accentGreen
+            }}>⬤</span>
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </p>
+        </div>
+        <div style={{
+          display: "flex",
+          alignItems: "center"
+        }}>
+          <span style={{
+            fontSize: "2.8rem",
+            marginRight: "12px",
+            color: colors.highlight
+          }}>
+            {weatherData.current.icon}
+          </span>
+          <div>
+            <span style={{
+              fontSize: "2rem",
+              fontWeight: "700",
+              color: colors.textDark,
+              background: `linear-gradient(135deg, ${colors.accentGreen}, ${colors.accentBlue})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              {weatherData.current.temp}°C
+            </span>
+            <p style={{
+              fontSize: "0.95rem",
+              color: colors.textLight,
+              margin: 0,
+              textAlign: "right",
+              fontWeight: '500'
+            }}>
+              {weatherData.current.condition}
+            </p>
+          </div>
+        </div>
       </div>
-      
-      <div className="weather-details-grid">
-        {/* Temperature Section */}
-        <div className="detail-section">
-          <h4><FaTemperatureHigh /> Temperatures</h4>
-          <div className="temp-row">
-            <span>Last 24h:</span>
-            <span>{temps.last24.min.toFixed(1)}° / {temps.last24.max.toFixed(1)}°</span>
-          </div>
-          <div className="temp-row">
-            <span>Next 24h:</span>
-            <span>{temps.next24.min.toFixed(1)}° / {temps.next24.max.toFixed(1)}°</span>
-          </div>
+
+      {/* Weather Stats */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(2, 1fr)",
+        gap: "15px",
+        marginBottom: "20px"
+      }}>
+        <div style={{
+          backgroundColor: colors.background,
+          borderRadius: "10px",
+          padding: "14px",
+          textAlign: "center",
+          border: `1px solid ${colors.secondary}`,
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: `0 4px 8px ${colors.secondary}`
+          }
+        }}>
+          <p style={{
+            fontSize: "0.85rem",
+            color: colors.textLight,
+            margin: "0 0 8px 0",
+            fontWeight: "600",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            {/* <span style={{
+              display: 'inline-block',
+              width: '10px',
+              height: '10px',
+              backgroundColor: colors.accentGreen,
+              borderRadius: '50%',
+              marginRight: '6px'
+            }}></span> */}
+            Humidity
+          </p>
+          <p style={{
+            fontSize: "1.4rem",
+            fontWeight: "700",
+            color: colors.textLight,
+            margin: 0,
+            textShadow: `0 2px 4px ${colors.secondary}`
+          }}>
+            {weatherData.current.humidity}%
+          </p>
         </div>
-        
-        {/* Rain Section */}
-        <div className="detail-section">
-          <h4><FaUmbrella /> Precipitation</h4>
-          <div className="rain-row">
-            <span>Last 24h:</span>
-            <span>{rain.last24.toFixed(1)} mm</span>
-          </div>
-          <div className="rain-row">
-            <span>Next 24h:</span>
-            <span>{rain.next24.toFixed(1)} mm</span>
-          </div>
-        </div>
-        
-        {/* Humidity Section */}
-        <div className="detail-section">
-          <h4><FaTint /> Humidity</h4>
-          <div className="humidity-row">
-            <span>Current:</span>
-            <span>{weatherData?.main?.humidity}%</span>
-          </div>
-          <div className="humidity-row">
-            <span>Wind:</span>
-            <span>{weatherData?.wind?.speed} m/s</span>
-          </div>
-        </div>
-        
-        {/* Pressure Section */}
-        <div className="detail-section">
-          <h4>Pressure</h4>
-          <div className="pressure-row">
-            <span>Current:</span>
-            <span>{weatherData?.main?.pressure} hPa</span>
-          </div>
+        <div style={{
+          backgroundColor: colors.background,
+          borderRadius: "10px",
+          padding: "14px",
+          textAlign: "center",
+          border: `1px solid ${colors.secondary}`,
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: `0 4px 8px ${colors.secondary}`
+          }
+        }}>
+          <p style={{
+            fontSize: "0.85rem",
+            color: colors.textLight,
+            margin: "0 0 8px 0",
+            fontWeight: "600",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            {/* <span style={{
+              display: 'inline-block',
+              width: '10px',
+              height: '10px',
+              backgroundColor: colors.secondary,
+              borderRadius: '50%',
+              marginRight: '6px'
+            }}></span> */}
+            Wind Speed
+          </p>
+          <p style={{
+            fontSize: "1.4rem",
+            fontWeight: "700",
+            color: colors.textLight,
+            margin: 0,
+            textShadow: `0 2px 4px ${colors.secondary}`
+          }}>
+            {weatherData.current.windSpeed} km/h
+          </p>
         </div>
       </div>
-      
-      <style jsx>{`
-        .weather-card {
-          width: 100%;
-          height: 100%;
-          border: 1px solid #e6e6e6;
-          border-radius: 15px;
-          padding: 20px;
-          background: #fff;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-          display: flex;
-          flex-direction: column;
-          transition: all 0.3s ease;
-        }
-        
-        .weather-card.expanded {
-          min-height: 500px;
-        }
-        
-        .weather-card.error {
-          color: #F44336;
-          justify-content: center;
-          align-items: center;
-        }
-        
-        h3 {
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #1259c3;
-          text-align: center;
-          margin-bottom: 15px;
-        }
-        
-        .weather-icon {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-        
-        .current-temp {
-          font-size: 2rem;
-          font-weight: 600;
-          margin: 10px 0;
-        }
-        
-        .weather-desc {
-          font-size: 1rem;
-          color: #757575;
-          text-transform: capitalize;
-        }
-        
-        .weather-details-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 15px;
-          margin-top: 15px;
-        }
-        
-        .detail-section {
-          border-top: 1px solid #e6e6e6;
-          padding-top: 10px;
-        }
-        
-        .detail-section h4 {
-          font-size: 0.9rem;
-          color: #1259c3;
-          margin-bottom: 10px;
-          display: flex;
-          align-items: center;
-          gap: 5px;
-        }
-        
-        .temp-row, .rain-row, .humidity-row, .pressure-row {
-          display: flex;
-          justify-content: space-between;
-          font-size: 0.85rem;
-          margin-bottom: 8px;
-        }
-      `}</style>
+
+      {/* Temperature Chart */}
+      <div style={{
+        flex: 1,
+        marginBottom: "20px",
+        minHeight: "180px"  // Increased height
+      }}>
+        <h3 style={{
+          fontSize: "1rem",
+          fontWeight: "700",
+          color: colors.textDark,
+          margin: "0 0 12px 0",
+          display: "flex",
+          alignItems: "center"
+        }}>
+          <span style={{
+            display: "inline-block",
+            width: "14px",
+            height: "14px",
+            backgroundColor: colors.highlight,
+            marginRight: "10px",
+            borderRadius: "3px"
+          }}></span>
+          Temperature Forecast
+        </h3>
+        <div style={{ 
+          height: "calc(100% - 30px)",
+          padding: "8px",
+          borderRadius: '8px',
+          backgroundColor: 'rgba(255,255,255,0.7)',
+          border: `1px solid ${colors.secondary}`
+        }}>
+          <Line data={tempChartData} options={chartOptions} />
+        </div>
+      </div>
+
+      {/* Precipitation Chart */}
+      <div style={{
+        flex: 1,
+        minHeight: "180px"  // Increased height
+      }}>
+        <h3 style={{
+          fontSize: "1rem",
+          fontWeight: "700",
+          color: colors.textDark,
+          margin: "0 0 12px 0",
+          display: "flex",
+          alignItems: "center"
+        }}>
+          <span style={{
+            display: "inline-block",
+            width: "14px",
+            height: "14px",
+            backgroundColor: colors.accentGreen,
+            marginRight: "10px",
+            borderRadius: "3px"
+          }}></span>
+          Precipitation Probability
+        </h3>
+        <div style={{ 
+          height: "calc(100% - 30px)",
+          padding: "8px",
+          borderRadius: '8px',
+          backgroundColor: 'rgba(255,255,255,0.7)',
+          border: `1px solid ${colors.secondary}`
+        }}>
+          <Bar data={precipChartData} options={{
+            ...chartOptions,
+            scales: {
+              ...chartOptions.scales,
+              y: {
+                ...chartOptions.scales.y,
+                max: 100,
+                min: 0
+              }
+            }
+          }} />
+        </div>
+      </div>
     </div>
   );
 };

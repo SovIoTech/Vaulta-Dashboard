@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PropTypes from "prop-types";
@@ -10,11 +10,18 @@ import NodeTables from "./NodeTables.js";
 import LoadingSpinner from "./LoadingSpinner.js";
 import WeatherCard from "./WeatherCard.js";
 import BatteryMetricsCarousel from "./BatteryMetricsCarousel.js";
+import { useResizeObserver } from '@react-aria/utils';
 
 const Dashboard = ({ bmsData, signOut }) => {
   const [bmsState, setBmsState] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("cards");
+
+  // Create refs for the main containers
+  const batteryStatusRef = useRef(null);
+  const batteryPerformanceRef = useRef(null);
+  const weatherRef = useRef(null);
+  const systemMetricsRef = useRef(null);
 
   useEffect(() => {
     console.log("bmsData:", bmsData);
@@ -151,8 +158,9 @@ const Dashboard = ({ bmsData, signOut }) => {
         >
           {activeTab === "cards" ? (
             <>
-              {/* Left Section - Combined Battery Status and Battery Performance (30% width) */}
-              <div
+              {/* Left Section - Combined Battery Status and Performance */}
+              <div 
+                ref={batteryStatusRef}
                 style={{
                   display: "flex",
                   flexDirection: "column",
@@ -173,6 +181,7 @@ const Dashboard = ({ bmsData, signOut }) => {
                     overflow: "hidden",
                     display: "flex",
                     flexDirection: "column",
+                    minHeight: 0,
                   }}
                 >
                   <h2
@@ -187,70 +196,87 @@ const Dashboard = ({ bmsData, signOut }) => {
                   >
                     Battery Status
                   </h2>
-                  <Cards bmsState={bmsState} roundValue={roundValue} />
-                  
-                  {/* Battery Performance Section */}
-                  <div style={{ marginTop: "15px", flex: 1 }}>
-                    <h2
-                      style={{
-                        color: "#333",
-                        marginBottom: "15px",
-                        fontWeight: "600",
-                        fontSize: "1.2rem",
-                        borderBottom: "1px solid #eee",
-                        paddingBottom: "5px",
-                      }}
-                    >
-                      Battery Performance
-                    </h2>
-                    <div style={{ flex: 1 }}>
-                      <Gauges 
-                        bmsState={bmsState} 
-                        roundValue={roundValue}
-                        containerStyle={{
-                          height: "100%",
-                          display: "flex",
-                          flexDirection: "column",
-                        }}
-                      />
-                    </div>
+                  <div style={{ flex: 1, minHeight: 0 }}>
+                    <Cards 
+                      bmsState={bmsState} 
+                      roundValue={roundValue}
+                      containerRef={batteryStatusRef}
+                    />
+                  </div>
+                </div>
+                
+                {/* Battery Performance Section */}
+                <div 
+                  ref={batteryPerformanceRef}
+                  style={{ 
+                    backgroundColor: "#fff",
+                    borderRadius: "4px",
+                    padding: "15px",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
+                    flex: 1,
+                    minHeight: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <h2
+                    style={{
+                      color: "#333",
+                      marginBottom: "15px",
+                      fontWeight: "600",
+                      fontSize: "1.2rem",
+                      borderBottom: "1px solid #eee",
+                      paddingBottom: "5px",
+                    }}
+                  >
+                    Battery Performance
+                  </h2>
+                  <div style={{ flex: 1, minHeight: 0 }}>
+                    <Gauges 
+                      bmsState={bmsState}
+                      roundValue={roundValue}
+                      containerRef={batteryPerformanceRef}
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Right Section - Main Content (70% width) */}
-              <div
-                style={{
-                  flex: 1,
+              {/* Right Section - Weather and System Metrics */}
+              <div style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                minWidth: 0,
+                gap: "10px",
+              }}>
+                <div style={{
                   display: "flex",
-                  flexDirection: "column",
-                  minWidth: "0",
+                  flex: 1,
                   gap: "10px",
-                }}
-              >
-                {/* Top Row - Weather Card and System Metrics */}
-                <div
-                  style={{
-                    display: "flex",
-                    flex: 1,
-                    gap: "10px",
-                    minHeight: 0,
-                  }}
-                >
-                  {/* Weather Card - reduced width */}
-                  <div style={{ 
-                    flex: 0.35,  // Reduced width (35% of right section)
-                    minWidth: 0,
-                  }}>
-                    <WeatherCard city="Brisbane" />
+                  minHeight: 0,
+                }}>
+                  {/* Weather Card */}
+                  <div 
+                    ref={weatherRef}
+                    style={{ 
+                      flex: 0.35,
+                      minWidth: 0,
+                      minHeight: 0,
+                    }}
+                  >
+                    <WeatherCard 
+                      city="Brisbane" 
+                      containerRef={weatherRef}
+                    />
                   </div>
 
-                  {/* System Metrics Section */}
+                  {/* System Metrics */}
                   <div
+                    ref={systemMetricsRef}
                     style={{
-                      flex: 0.65,  // Takes remaining space (65% of right section)
+                      flex: 0.65,
                       backgroundColor: "#fff",
-                      borderRadius: "4px",
+                      borderRadius: "1px",
                       padding: "15px",
                       boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
                       display: "flex",
@@ -270,11 +296,12 @@ const Dashboard = ({ bmsData, signOut }) => {
                     >
                       System Metrics
                     </h2>
-                    <div style={{ 
-                      flex: 1,
-                      minHeight: 0,
-                    }}>
-                      <BatteryMetricsCarousel bmsState={bmsState} roundValue={roundValue} />
+                    <div style={{ flex: 1, minHeight: 0 }}>
+                      <BatteryMetricsCarousel 
+                        bmsState={bmsState} 
+                        roundValue={roundValue}
+                        containerRef={systemMetricsRef}
+                      />
                     </div>
                   </div>
                 </div>
