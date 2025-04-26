@@ -66,7 +66,7 @@ const BatteryMetricsCarousel = ({
     <div
       style={{
         backgroundColor: "#fff",
-        borderRadius: "8px",
+        borderRadius: "4px",
         padding: "15px",
         display: "flex",
         flexDirection: "column",
@@ -74,17 +74,17 @@ const BatteryMetricsCarousel = ({
         justifyContent: "center",
         border: `1px solid ${colors.secondary || "#e0e0e0"}`,
         transition: "all 0.3s ease",
-        height: "100%",
+        height: "75%",
         // Increased card size by 30%
         transform: "scale(1.3)",
         transformOrigin: "center",
-        margin: "15%",
+        margin: "12%",
       }}
     >
       <h3
         style={{
           fontSize: "1.1rem",
-          marginBottom: "8px",
+          marginBottom: "4px",
           textAlign: "center",
           color: colors.textDark || "#333",
           fontWeight: "600",

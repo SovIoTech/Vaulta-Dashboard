@@ -17,10 +17,10 @@ const TopBanner = ({ bmsState, children, lastUpdate, isUpdating }) => {
         justifyContent: "space-between",
         alignItems: "center",
         backgroundColor: "white",
-        padding: "16px 20px",
+        padding: "2px 2px",
         borderRadius: "15px", // Rounded corners for OneUI
         boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-        marginBottom: "20px",
+        marginBottom: "5px",
         border: "1px solid #e6e6e6",
       }}
     >
@@ -29,8 +29,8 @@ const TopBanner = ({ bmsState, children, lastUpdate, isUpdating }) => {
           src={logo}
           alt="Vaulta Logo"
           style={{
-            height: "50px", // Increased logo size
-            marginRight: "18px", // Increased margin
+            height: "200px", // Increased logo size
+            marginRight: "10px", // Increased margin
           }}
         />
         <h1
@@ -41,6 +41,7 @@ const TopBanner = ({ bmsState, children, lastUpdate, isUpdating }) => {
             fontFamily:
               "SamsungOne, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
             margin: 0,
+            textAlign: "top",
           }}
         >
           Battery Management Dashboard
