@@ -5,125 +5,127 @@ const CardItem = ({ label, value, icon, color }) => (
     style={{
       display: "flex",
       alignItems: "center",
-      border: "1px solid #ddd",
+      border: "1px solid #e6e6e6",
       borderRadius: "10px",
       padding: "15px",
-      margin: "10px 0",
-      backgroundColor: "#f9f9f9",
-      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+      margin: "5px",
+      backgroundColor: "#ffffff",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+      flex: "1 1 calc(50% - 10px)",
+      minWidth: "120px",
     }}
   >
     {icon && (
       <div
         style={{
           marginRight: "15px",
-          color: color || "#333",
-          fontSize: "24px",
+          color: color,
+          fontSize: "24px", // Increased icon size
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "36px", // Increased width
+          height: "36px", // Increased height
         }}
       >
         {icon}
       </div>
     )}
     <div>
-      <div style={{ color: "#666", fontSize: "14px" }}>{label}</div>
-      <div style={{ fontWeight: "bold", fontSize: "16px" }}>{value}</div>
+      <div
+        style={{
+          color: "#757575",
+          fontSize: "15px", // Increased label font size
+          marginBottom: "4px",
+          fontWeight: "500",
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontWeight: "bold",
+          fontSize: "20px", // Increased value font size
+          color: "#000000",
+        }}
+      >
+        {value}
+      </div>
     </div>
   </div>
 );
 
-const Cards = ({ bmsState, roundValue }) => {
-  const cardSections = [
+const Cards = ({ bmsState, roundValue, colors = {} }) => {
+  // Use provided colors or fallback to default
+  const cardColors = {
+    primary: colors.primary || "#1259c3",
+    secondary: colors.secondary || "#c0c0c0",
+    accentGreen: colors.accentGreen || "#4CAF50",
+    accentRed: colors.accentRed || "#F44336",
+    highlight: colors.highlight || "#FFC107",
+  };
+
+  // Organize all card items into a single array to use with flex layout
+  const cardItems = [
+    // State of Charge Items
     {
-      title: "State of Charge (SOC)",
-      items: [
-        {
-          label: "Ah Capacity",
-          value: roundValue(bmsState.SOCAh?.N || 0),
-          icon: "⚡",
-        },
-        {
-          label: "Percentage",
-          value: `${roundValue(bmsState.SOCPercent?.N || 0)}%`,
-          icon: "%",
-        },
-      ],
+      label: "Capacity (Ah)",
+      value: roundValue(bmsState.SOCAh?.N || 0),
+      icon: "",
+      color: cardColors.primary,
     },
     {
-      title: "Voltages",
-      items: [
-        {
-          label: "Load Voltage",
-          value: `${roundValue(bmsState.TotalLoadVoltage?.N || 0)} V`,
-          icon: "🔌",
-          color: "#2196F3",
-        },
-        {
-          label: "Battery Voltage",
-          value: `${roundValue(bmsState.TotalBattVoltage?.N || 0)} V`,
-          icon: "🔋",
-          color: "#4CAF50",
-        },
-      ],
+      label: "Battery Level",
+      value: `${roundValue(bmsState.SOCPercent?.N || 0)}%`,
+      icon: "",
+      color: cardColors.primary,
+    },
+    // Voltage Readings
+    {
+      label: "Load Voltage",
+      value: `${roundValue(bmsState.TotalLoadVoltage?.N || 0)} V`,
+      icon: "",
+      color: cardColors.primary,
     },
     {
-      title: "Current & Pack Info",
-      items: [
-        {
-          label: "Total Current",
-          value: `${roundValue(bmsState.TotalCurrent?.N || 0)} A`,
-          icon: "⚡",
-          color: "#FF9800",
-        },
-        {
-          label: "Node Count",
-          value: roundValue(bmsState.PackNodeCount?.N || 0),
-          icon: "#️⃣",
-        },
-      ],
+      label: "Battery Voltage",
+      value: `${roundValue(bmsState.TotalBattVoltage?.N || 0)} V`,
+      icon: "",
+      color: cardColors.accentGreen,
+    },
+    // Current & Environmental Impact
+    {
+      label: "Total Current",
+      value: `${roundValue(bmsState.TotalCurrent?.N || 0)} A`,
+      icon: "",
+      color: cardColors.highlight,
+    },
+    {
+      label: "Carbon Offset",
+      value: `${roundValue(bmsState.Carbon_Offset_kg?.N || 0)} kg`,
+      icon: "",
+      color: cardColors.accentGreen,
     },
   ];
 
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-        gap: "20px",
-        marginBottom: "20px",
+        display: "flex",
+        flexWrap: "wrap",
+        margin: "-5px", // To compensate for card margins
+        height: "100%",
+        overflow: "auto",
       }}
     >
-      {cardSections.map((section, index) => (
-        <div
+      {cardItems.map((item, index) => (
+        <CardItem
           key={index}
-          style={{
-            background: "#fff",
-            borderRadius: "10px",
-            boxShadow: "0px 10px 30px rgba(0, 0, 0, 0.1)",
-            padding: "20px",
-            textAlign: "left",
-          }}
-        >
-          <h3
-            style={{
-              fontWeight: "bold",
-              marginBottom: "15px",
-              color: "#333",
-              borderBottom: "2px solid #f0f0f0",
-              paddingBottom: "10px",
-            }}
-          >
-            {section.title}
-          </h3>
-          {section.items.map((item, i) => (
-            <CardItem
-              key={i}
-              label={item.label}
-              value={item.value}
-              icon={item.icon}
-              color={item.color}
-            />
-          ))}
-        </div>
+          label={item.label}
+          value={item.value}
+          icon={item.icon}
+          color={item.color}
+        />
       ))}
     </div>
   );

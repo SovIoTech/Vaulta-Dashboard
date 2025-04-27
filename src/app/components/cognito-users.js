@@ -1,5 +1,6 @@
 import { fetchAuthSession } from "aws-amplify/auth";
 import { CognitoIdentityProvider } from "@aws-sdk/client-cognito-identity-provider";
+import awsmobile from "../../aws-exports.js";
 
 // Configure the Cognito client with Amplify credentials
 const configureCognitoClient = async () => {
@@ -28,7 +29,7 @@ export const listUsers = async () => {
     const cognito = await configureCognitoClient();
 
     const params = {
-      UserPoolId: "ap-southeast-2_Eboe2DPcz", // Replace with your User Pool ID
+      UserPoolId: awsmobile.aws_user_pools_id, // Replace with your User Pool ID
       Limit: 10, // Optional: Limit the number of users returned
     };
 
@@ -47,7 +48,7 @@ export const updateUserRole = async (username, role) => {
     const cognito = await configureCognitoClient();
 
     const params = {
-      UserPoolId: "ap-southeast-2_Eboe2DPcz", // Replace with your User Pool ID
+      UserPoolId: awsmobile.aws_user_pools_id, // Replace with your User Pool ID
       Username: username,
       UserAttributes: [
         {

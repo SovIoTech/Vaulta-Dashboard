@@ -1,23 +1,40 @@
 import React from "react";
-import { signOut } from "aws-amplify/auth"; // Import the signOut function
-import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
+import { signOut } from "aws-amplify/auth";
+import { useNavigate } from "react-router-dom";
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
+const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
+  const navigate = useNavigate(); // Use the useNavigate hook directly
+
   const menuItems = [
     {
       icon: "📊",
       label: "Dashboard",
-      onClick: () => navigate("/dashboard"), // Navigate to Dashboard
+      onClick: () => navigate("/dashboard"),
     },
     {
-      icon: "📄",
-      label: "Userpool",
-      onClick: () => navigate("/page2"), // Navigate to Page 2
+      icon: "👥",
+      label: "User Management",
+      onClick: () => navigate("/page2"),
+    },
+    {
+      icon: "📈",
+      label: "Data Analytics",
+      onClick: () => navigate("/page3"),
+    },
+    {
+      icon: "🧠",
+      label: "ML Dashboard",
+      onClick: () => navigate("/ml-dashboard"),
     },
     {
       icon: "⚙️",
-      label: "Settings",
-      onClick: () => navigate("/page3"), // Navigate to Page 3
+      label: "System Settings",
+      onClick: () => navigate("/page4"),
+    },
+    {
+      icon: "🔋",
+      label: "Energy Monitor",
+      onClick: () => navigate("/page5"),
     },
   ];
 
@@ -25,7 +42,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
   const handleSignOut = async () => {
     try {
       await signOut(); // Sign out the user
-      navigate("/login"); // Redirect to the login page after logout
+      navigate("/"); // Redirect to the login page after logout
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -35,50 +52,56 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
     <div
       style={{
         width: sidebarOpen ? "250px" : "80px",
-        backgroundColor: "white",
-        color: "#566a7f",
+        backgroundColor: "#fff", // White background
+        color: "#000000", // OneUI default text color
         transition: "width 0.3s ease",
         padding: "20px 0",
         position: "sticky",
         top: 0,
         height: "100vh",
-        borderRight: "1px solid #e0e0e0",
+        borderRight: "1px solid #e6e6e6", // Light border for separation
         boxShadow: "2px 0 4px rgba(0,0,0,0.05)",
         display: "flex",
         flexDirection: "column",
+        zIndex: 100,
       }}
     >
+      {/* Toggle Button */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
         style={{
           background: "none",
           border: "none",
-          color: "#696cff",
+          color: "#1259c3", // OneUI primary blue color
           cursor: "pointer",
           alignSelf: "flex-end",
           marginRight: "15px",
           marginBottom: "20px",
+          fontSize: "1.2rem",
         }}
+        autoFocus={true}
       >
         {sidebarOpen ? "◀" : "▶"}
       </button>
 
       {sidebarOpen ? (
         <div>
+          {/* Sidebar Header */}
           <h3
             style={{
               marginTop: "10px",
               marginBottom: "20px",
-              color: "#696cff",
+              color: "#1259c3", // OneUI primary blue color
               fontWeight: "600",
               paddingLeft: "20px",
               textTransform: "uppercase",
               fontSize: "0.9rem",
             }}
           >
-            Main Menu
+            Menu
           </h3>
 
+          {/* Menu Items */}
           <ul style={{ listStyle: "none", padding: 0 }}>
             {menuItems.map((item, index) => (
               <li
@@ -93,22 +116,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
                   style={{
                     background: "none",
                     border: "none",
-                    color: "#566a7f",
+                    color: "#000000", // OneUI default text color
                     cursor: "pointer",
                     fontSize: "1rem",
                     display: "flex",
                     alignItems: "center",
                     width: "100%",
                     padding: "10px",
-                    borderRadius: "8px",
+                    borderRadius: "25px", // Rounded corners for OneUI
                     transition: "background-color 0.2s ease",
                   }}
-                  className="hover:bg-[#f5f5f9]"
+                  className="hover:bg-[#f2f2f2]" // Light hover effect - OneUI color
                 >
                   <span
                     style={{
                       marginRight: "12px",
-                      color: "#696cff",
+                      color: "#1259c3", // OneUI primary blue color
                       display: "flex",
                       alignItems: "center",
                     }}
@@ -120,6 +143,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
               </li>
             ))}
 
+            {/* Logout Button */}
             <li
               style={{
                 margin: "10px 0",
@@ -128,10 +152,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
               }}
             >
               <button
-                onClick={handleSignOut} // Call handleSignOut on click
+                onClick={handleSignOut}
                 style={{
-                  background: "#696cff",
-                  color: "white",
+                  background: "#1259c3", // OneUI primary blue color
+                  color: "#fff", // White text
                   border: "none",
                   cursor: "pointer",
                   fontSize: "1rem",
@@ -139,13 +163,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
                   alignItems: "center",
                   width: "calc(100% - 40px)",
                   padding: "10px",
-                  borderRadius: "8px",
-                  boxShadow: "0 2px 4px rgba(105, 108, 255, 0.4)",
+                  borderRadius: "25px", // Rounded corners for OneUI
+                  boxShadow: "0 2px 4px rgba(18, 89, 195, 0.4)", // Subtle shadow
                   transition: "background-color 0.3s ease",
                 }}
-                className="hover:bg-[#5a5eff]"
+                tabIndex="-1" // Prevent the button from being focusable
+                className="logout-button hover:bg-[#0c3f82]" // Add the class here
               >
-                🚪 Log Out
+                🚪 Sign Out
               </button>
             </li>
           </ul>
@@ -158,6 +183,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
             alignItems: "center",
           }}
         >
+          {/* Collapsed Menu Icons */}
           {menuItems.map((item, index) => (
             <button
               key={index}
@@ -165,27 +191,31 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, navigate }) => {
               style={{
                 background: "none",
                 border: "none",
-                color: "#566a7f",
+                color: "#1259c3", // OneUI primary blue color
                 cursor: "pointer",
-                padding: "10px",
+                padding: "15px",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
+                fontSize: "1.2rem",
               }}
             >
               {item.icon}
             </button>
           ))}
+          {/* Collapsed Logout Icon */}
           <button
-            onClick={handleSignOut} // Call handleSignOut on click
+            onClick={handleSignOut}
             style={{
               background: "none",
               border: "none",
-              color: "#696cff",
+              color: "#1259c3", // OneUI primary blue color
               cursor: "pointer",
               marginTop: "auto",
-              padding: "10px",
+              padding: "15px",
+              fontSize: "1.2rem",
             }}
+            tabIndex="-1" // Prevent the button from being focusable
           >
             🚪
           </button>

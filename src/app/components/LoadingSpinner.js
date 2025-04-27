@@ -7,22 +7,33 @@ const LoadingSpinner = () => {
     <div
       style={{
         display: "flex",
+        flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         height: "100vh",
-        backgroundColor: "rgba(255, 255, 255, 0.8)", // Semi-transparent background
+        backgroundColor: "#f2f2f2", // OneUI light background
       }}
     >
       <div
         style={{
-          border: "4px solid rgba(128, 0, 128, 0.3)", // Purple border
-          borderTop: "4px solid orange", // Orange top border
+          border: "4px solid rgba(18, 89, 195, 0.3)", // OneUI blue border
+          borderTop: "4px solid #1259c3", // OneUI blue top border
           borderRadius: "50%",
-          width: "40px",
-          height: "40px",
+          width: "50px",
+          height: "50px",
           animation: "spin 1s linear infinite",
+          marginBottom: "20px",
         }}
       ></div>
+      <p
+        style={{
+          color: "#1259c3",
+          fontWeight: "500",
+          fontSize: "16px",
+        }}
+      >
+        Loading...
+      </p>
       <style>
         {`
           @keyframes spin {
