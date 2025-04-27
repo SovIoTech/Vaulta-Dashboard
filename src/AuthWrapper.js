@@ -1,50 +1,25 @@
-import React, { useState } from "react";
+import React from "react";
 import { Authenticator } from "@aws-amplify/ui-react";
-import { signOut } from "aws-amplify/auth"; // Import signOut function
-import { useNavigate } from "react-router-dom"; // Import useNavigate
-import "./AuthWrapper.css";
+import { useNavigate } from "react-router-dom";
 
 const AuthWrapper = ({ children }) => {
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate(); // Initialize the navigate function
-
-  const toggleDropdown = () => {
-    setDropdownOpen(!isDropdownOpen);
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(); // Use the signOut function
-      console.log("User signed out successfully");
-      navigate("/"); // Redirect to the login page after sign-out
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  };
 
   return (
     <Authenticator>
       {({ user }) => (
-        <div className="auth-container">
-          {/* Top Bar */}
-          <div className="top-bar">
-            <div className="logo">Battery Management System</div>
-            <div className="user-menu">
-              <button onClick={toggleDropdown} className="user-button">
-                {user?.username} ▼
-              </button>
-              {isDropdownOpen && (
-                <div className="dropdown-menu">
-                  <div className="dropdown-item">{user?.username}</div>
-                  <button onClick={handleSignOut} className="dropdown-item">
-                    Sign Out
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-          {/* Main Content */}
-          {children({ user, navigate })} {/* Pass navigate to children */}
+        <div
+          className="auth-container"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100vh",
+            backgroundColor: "#f2f2f2",
+          }}
+        >
+          {/* Main Content - no top bar anymore */}
+          {children({ user, navigate })}{" "}
+          {/* Pass user and navigate to children */}
         </div>
       )}
     </Authenticator>

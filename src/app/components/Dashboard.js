@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PropTypes from "prop-types";
-import Sidebar from "./Sidebar.js";
 import TopBanner from "./TopBanner.js";
 import Cards from "./Cards.js";
 import Gauges from "./Gauges.js";
@@ -10,20 +9,21 @@ import NodeTables from "./NodeTables.js";
 import LoadingSpinner from "./LoadingSpinner.js";
 import WeatherCard from "./WeatherCard.js";
 import BatteryMetricsCarousel from "./BatteryMetricsCarousel.js";
-import { useResizeObserver } from "@react-aria/utils";
 import AWS from "aws-sdk";
 import { fetchAuthSession } from "aws-amplify/auth";
 import awsconfig from "../../aws-exports.js";
 import { getLastMinuteData } from "../../queries.js";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = ({ bmsData, signOut }) => {
   const [bmsState, setBmsState] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("cards");
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastUpdateTime, setLastUpdateTime] = useState(new Date());
+  const [darkMode, setDarkMode] = useState(false);
+  const navigate = useNavigate();
 
-  // Refs for tracking components and intervals
+  // Refs for tracking components
   const batteryStatusRef = useRef(null);
   const batteryPerformanceRef = useRef(null);
   const weatherRef = useRef(null);
@@ -93,6 +93,75 @@ const Dashboard = ({ bmsData, signOut }) => {
       setBmsState({});
     }
   }, [bmsData]);
+  useEffect(() => {
+    // If no bmsData is received or if bmsState is still null after initial load
+    if (!bmsState) {
+      // Create a fallback bmsState with all necessary properties
+      // This is just for testing purposes and should be removed in production
+      const fallbackBmsState = {
+        DeviceId: { N: "TEST-DEVICE" },
+        SerialNumber: { N: "12345678" },
+        TagID: { S: "BAT-0x440" },
+        SOCPercent: { N: "85" },
+        SOCAh: { N: "120" },
+        TotalBattVoltage: { N: "48.2" },
+        TotalLoadVoltage: { N: "48.0" },
+        TotalCurrent: { N: "5.2" },
+        Carbon_Offset_kg: { N: "128.5" },
+        MaxCellTemp: { N: "36" },
+        MinCellTemp: { N: "32" },
+        MaxCellTempNode: { N: "0" },
+        MinCellTempNode: { N: "1" },
+        MaximumCellVoltage: { N: "3.95" },
+        MinimumCellVoltage: { N: "3.85" },
+        MaximumCellVoltageCellNo: { N: "5" },
+        MinimumCellVoltageCellNo: { N: "12" },
+        MaximumCellVoltageNode: { N: "0" },
+        MinimumCellVoltageNode: { N: "1" },
+        // Node 00 data
+        Node00BalanceStatus: { N: "1" },
+        Node00TotalVoltage: { N: "24.1" },
+        Node00TempCount: { N: "6" },
+      };
+
+      // Add cell voltages for Node00
+      for (let i = 0; i < 14; i++) {
+        const cellKey = `Node00Cell${i < 10 ? `0${i}` : i}`;
+        fallbackBmsState[cellKey] = {
+          N: (3.85 + Math.random() * 0.1).toFixed(2),
+        };
+      }
+
+      // Add temperatures for Node00
+      for (let i = 0; i < 6; i++) {
+        const tempKey = `Node00Temp${i < 10 ? `0${i}` : i}`;
+        fallbackBmsState[tempKey] = { N: (32 + Math.random() * 4).toFixed(1) };
+      }
+
+      // Node 01 data
+      fallbackBmsState.Node01BalanceStatus = { N: "1" };
+      fallbackBmsState.Node01TotalVoltage = { N: "24.1" };
+      fallbackBmsState.Node01TempCount = { N: "6" };
+
+      // Add cell voltages for Node01
+      for (let i = 0; i < 14; i++) {
+        const cellKey = `Node01Cell${i < 10 ? `0${i}` : i}`;
+        fallbackBmsState[cellKey] = {
+          N: (3.85 + Math.random() * 0.1).toFixed(2),
+        };
+      }
+
+      // Add temperatures for Node01
+      for (let i = 0; i < 6; i++) {
+        const tempKey = `Node01Temp${i < 10 ? `0${i}` : i}`;
+        fallbackBmsState[tempKey] = { N: (32 + Math.random() * 4).toFixed(1) };
+      }
+
+      console.log("Using fallback bmsState for testing");
+      setBmsState(fallbackBmsState);
+      setLastUpdateTime(new Date());
+    }
+  }, [bmsState]); // Only run when bmsState changes or is null
 
   // Set up auto-refresh interval
   useEffect(() => {
@@ -154,7 +223,7 @@ const Dashboard = ({ bmsData, signOut }) => {
     return <LoadingSpinner />;
   }
 
-  // Define colors from WeatherCard for consistent styling
+  // Define colors for consistent styling
   const colors = {
     primary: "#818181", // Base gray
     secondary: "#c0c0c0", // Light gray
@@ -167,320 +236,307 @@ const Dashboard = ({ bmsData, signOut }) => {
     highlight: "#FFC107", // Accent yellow
   };
 
+  // Tab navigation component
+  const TabNavigation = () => (
+    <div style={{ display: "flex", gap: "10px" }}>
+      <button
+        onClick={() => setActiveTab("cards")}
+        style={{
+          margin: "0 5px",
+          padding: "8px 16px",
+          backgroundColor:
+            activeTab === "cards" ? colors.accentGreen : "#ffffff",
+          color: activeTab === "cards" ? "#fff" : colors.textDark,
+          border: "none",
+          borderRadius: "2px",
+          cursor: "pointer",
+          fontWeight: "600",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          fontSize: "0.85rem",
+        }}
+      >
+        System Overview
+      </button>
+      <button
+        onClick={() => setActiveTab("tables")}
+        style={{
+          margin: "0 5px",
+          padding: "8px 16px",
+          backgroundColor:
+            activeTab === "tables" ? colors.accentGreen : "#ffffff",
+          color: activeTab === "tables" ? "#fff" : colors.textDark,
+          border: "none",
+          borderRadius: "2px",
+          cursor: "pointer",
+          fontWeight: "600",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          fontSize: "0.85rem",
+        }}
+      >
+        Detailed Data
+      </button>
+      {/* Manual refresh button */}
+      <button
+        onClick={fetchLatestData}
+        disabled={isUpdating}
+        style={{
+          margin: "0 5px",
+          padding: "8px 16px",
+          backgroundColor: isUpdating ? "#cccccc" : "#ffffff",
+          color: colors.textDark,
+          border: "none",
+          borderRadius: "2px",
+          cursor: isUpdating ? "not-allowed" : "pointer",
+          fontWeight: "600",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          fontSize: "0.85rem",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        {isUpdating ? (
+          <>
+            <span
+              style={{
+                display: "inline-block",
+                width: "12px",
+                height: "12px",
+                border: "2px solid #333",
+                borderTopColor: "transparent",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite",
+                marginRight: "6px",
+              }}
+            ></span>
+            Updating...
+          </>
+        ) : (
+          "Refresh Data"
+        )}
+      </button>
+    </div>
+  );
+
   return (
     <div
       style={{
         display: "flex",
+        flexDirection: "column",
         height: "100vh",
         overflow: "hidden",
         backgroundColor: "#f2f2f2",
         fontFamily: "Arial, sans-serif",
+        padding: "10px",
       }}
     >
       <ToastContainer />
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        signOut={signOut}
-      />
+
+      {/* Updated Top Banner with navigation */}
+      <TopBanner
+        user={{ username: bmsData?.userDetails?.identityId || "User" }}
+        bmsState={bmsState}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        lastUpdate={lastUpdateTime}
+        isUpdating={isUpdating}
+      >
+        <TabNavigation />
+      </TopBanner>
+
+      {/* Main Content */}
       <div
         style={{
           flex: 1,
-          padding: "10px",
-          maxWidth: "calc(100% - 80px)",
           display: "flex",
-          flexDirection: "column",
           overflow: "hidden",
         }}
       >
-        {/* Top Banner - Now includes tab navigation */}
-        <div style={{ marginBottom: "10px" }}>
-          <TopBanner
-            bmsState={bmsState}
-            lastUpdate={lastUpdateTime}
-            isUpdating={isUpdating}
-          >
-            {/* Tab Navigation inside the TopBanner */}
+        {activeTab === "cards" ? (
+          <>
+            {/* Left Section - Combined Battery Status and Performance */}
             <div
+              ref={batteryStatusRef}
               style={{
                 display: "flex",
-                marginLeft: "20px",
+                flexDirection: "column",
+                width: "30%",
+                minWidth: "300px",
+                marginRight: "10px",
+                gap: "10px",
               }}
             >
-              <button
-                onClick={() => setActiveTab("cards")}
-                style={{
-                  margin: "0 5px",
-                  padding: "8px 16px",
-                  backgroundColor:
-                    activeTab === "cards" ? colors.accentGreen : "#ffffff",
-                  color: activeTab === "cards" ? "#fff" : colors.textDark,
-                  border: "none",
-                  borderRadius: "2px",
-                  cursor: "pointer",
-                  fontWeight: "600",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                  fontSize: "0.85rem",
-                }}
-              >
-                System Overview
-              </button>
-              <button
-                onClick={() => setActiveTab("tables")}
-                style={{
-                  margin: "0 5px",
-                  padding: "8px 16px",
-                  backgroundColor:
-                    activeTab === "tables" ? colors.accentGreen : "#ffffff",
-                  color: activeTab === "tables" ? "#fff" : colors.textDark,
-                  border: "none",
-                  borderRadius: "2px",
-                  cursor: "pointer",
-                  fontWeight: "600",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                  fontSize: "0.85rem",
-                }}
-              >
-                Detailed Data
-              </button>
-              {/* Manual refresh button */}
-              <button
-                onClick={fetchLatestData}
-                disabled={isUpdating}
-                style={{
-                  margin: "0 5px",
-                  padding: "8px 16px",
-                  backgroundColor: isUpdating ? "#cccccc" : "#ffffff",
-                  color: colors.textDark,
-                  border: "none",
-                  borderRadius: "2px",
-                  cursor: isUpdating ? "not-allowed" : "pointer",
-                  fontWeight: "600",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                  fontSize: "0.85rem",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                {isUpdating ? (
-                  <>
-                    <span
-                      style={{
-                        display: "inline-block",
-                        width: "12px",
-                        height: "12px",
-                        border: "2px solid #333",
-                        borderTopColor: "transparent",
-                        borderRadius: "50%",
-                        animation: "spin 1s linear infinite",
-                        marginRight: "6px",
-                      }}
-                    ></span>
-                    Updating...
-                  </>
-                ) : (
-                  "Refresh Data"
-                )}
-              </button>
-            </div>
-          </TopBanner>
-        </div>
-
-        {/* Main Content */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            overflow: "hidden",
-          }}
-        >
-          {activeTab === "cards" ? (
-            <>
-              {/* Left Section - Combined Battery Status and Performance */}
-              <div
-                ref={batteryStatusRef}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  width: "30%",
-                  minWidth: "300px",
-                  marginRight: "10px",
-                  gap: "10px",
-                }}
-              >
-                {/* Battery Status Section */}
-                <div
-                  style={{
-                    backgroundColor: "#fff",
-                    borderRadius: "12px",
-                    padding: "15px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    flex: 1,
-                    overflow: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
-                    minHeight: 0,
-                    border: `1px solid ${colors.secondary}`,
-                  }}
-                >
-                  <h2
-                    style={{
-                      color: colors.textDark,
-                      marginBottom: "15px",
-                      fontWeight: "600",
-                      fontSize: "1.2rem",
-                      borderBottom: `1px solid ${colors.secondary}`,
-                      paddingBottom: "5px",
-                    }}
-                  >
-                    Battery Status
-                  </h2>
-                  <div style={{ flex: 1, minHeight: 0 }}>
-                    <Cards
-                      bmsState={bmsState}
-                      roundValue={roundValue}
-                      containerRef={batteryStatusRef}
-                      colors={colors}
-                    />
-                  </div>
-                </div>
-
-                {/* Battery Performance Section */}
-                <div
-                  ref={batteryPerformanceRef}
-                  style={{
-                    backgroundColor: "#fff",
-                    borderRadius: "12px",
-                    padding: "15px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    flex: 1,
-                    minHeight: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    border: `1px solid ${colors.secondary}`,
-                  }}
-                >
-                  <h2
-                    style={{
-                      color: colors.textDark,
-                      marginBottom: "15px",
-                      fontWeight: "600",
-                      fontSize: "1.2rem",
-                      borderBottom: `1px solid ${colors.secondary}`,
-                      paddingBottom: "5px",
-                    }}
-                  >
-                    Battery Performance
-                  </h2>
-                  <div style={{ flex: 1, minHeight: 0 }}>
-                    <Gauges
-                      bmsState={bmsState}
-                      roundValue={roundValue}
-                      containerRef={batteryPerformanceRef}
-                      colors={colors}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Section - Weather and System Metrics */}
+              {/* Battery Status Section */}
               <div
                 style={{
+                  backgroundColor: "#fff",
+                  borderRadius: "12px",
+                  padding: "15px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                   flex: 1,
+                  overflow: "hidden",
                   display: "flex",
                   flexDirection: "column",
-                  minWidth: 0,
-                  gap: "10px",
+                  minHeight: 0,
+                  border: `1px solid ${colors.secondary}`,
                 }}
               >
-                <div
+                <h2
                   style={{
-                    display: "flex",
-                    flex: 1,
-                    gap: "10px",
-                    minHeight: 0,
+                    color: colors.textDark,
+                    marginBottom: "15px",
+                    fontWeight: "600",
+                    fontSize: "1.2rem",
+                    borderBottom: `1px solid ${colors.secondary}`,
+                    paddingBottom: "5px",
                   }}
                 >
-                  {/* Weather Card */}
-                  <div
-                    ref={weatherRef}
-                    style={{
-                      flex: 0.35,
-                      minWidth: 0,
-                      minHeight: 0,
-                    }}
-                  >
-                    <WeatherCard city="Brisbane" containerRef={weatherRef} />
-                  </div>
-
-                  {/* System Metrics */}
-                  <div
-                    ref={systemMetricsRef}
-                    style={{
-                      flex: 0.65,
-                      backgroundColor: "#fff",
-                      borderRadius: "12px",
-                      padding: "15px",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                      display: "flex",
-                      flexDirection: "column",
-                      minHeight: 0,
-                      border: `1px solid ${colors.secondary}`,
-                    }}
-                  >
-                    <h2
-                      style={{
-                        color: colors.textDark,
-                        marginBottom: "15px",
-                        fontWeight: "600",
-                        fontSize: "1.2rem",
-                        borderBottom: `1px solid ${colors.secondary}`,
-                        paddingBottom: "5px",
-                      }}
-                    >
-                      System Metrics
-                    </h2>
-                    <div style={{ flex: 1, minHeight: 0 }}>
-                      <BatteryMetricsCarousel
-                        bmsState={bmsState}
-                        roundValue={roundValue}
-                        containerRef={systemMetricsRef}
-                        colors={colors}
-                      />
-                    </div>
-                  </div>
+                  Battery Status
+                </h2>
+                <div style={{ flex: 1, minHeight: 0 }}>
+                  <Cards
+                    bmsState={bmsState}
+                    roundValue={roundValue}
+                    containerRef={batteryStatusRef}
+                    colors={colors}
+                  />
                 </div>
               </div>
-            </>
-          ) : (
-            /* Tables Section */
+
+              {/* Battery Performance Section */}
+              <div
+                ref={batteryPerformanceRef}
+                style={{
+                  backgroundColor: "#fff",
+                  borderRadius: "12px",
+                  padding: "15px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  flex: 1,
+                  minHeight: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  border: `1px solid ${colors.secondary}`,
+                }}
+              >
+                <h2
+                  style={{
+                    color: colors.textDark,
+                    marginBottom: "15px",
+                    fontWeight: "600",
+                    fontSize: "1.2rem",
+                    borderBottom: `1px solid ${colors.secondary}`,
+                    paddingBottom: "5px",
+                  }}
+                >
+                  Battery Performance
+                </h2>
+                <div style={{ flex: 1, minHeight: 0 }}>
+                  <Gauges
+                    bmsState={bmsState}
+                    roundValue={roundValue}
+                    containerRef={batteryPerformanceRef}
+                    colors={colors}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Right Section - Weather and System Metrics */}
             <div
               style={{
-                backgroundColor: "#fff",
-                borderRadius: "12px",
-                padding: "15px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 flex: 1,
-                overflow: "hidden",
-                border: `1px solid ${colors.secondary}`,
+                display: "flex",
+                flexDirection: "column",
+                minWidth: 0,
+                gap: "10px",
               }}
             >
-              <h2
+              <div
                 style={{
-                  color: colors.textDark,
-                  marginBottom: "15px",
-                  fontWeight: "600",
-                  fontSize: "1.2rem",
-                  borderBottom: `1px solid ${colors.secondary}`,
-                  paddingBottom: "5px",
+                  display: "flex",
+                  flex: 1,
+                  gap: "10px",
+                  minHeight: 0,
                 }}
               >
-                Cell & Temperature Data
-              </h2>
-              <NodeTables nodeData={nodeData} colors={colors} />
+                {/* Weather Card */}
+                <div
+                  ref={weatherRef}
+                  style={{
+                    flex: 0.35,
+                    minWidth: 0,
+                    minHeight: 0,
+                  }}
+                >
+                  <WeatherCard city="Brisbane" containerRef={weatherRef} />
+                </div>
+
+                {/* System Metrics */}
+                <div
+                  ref={systemMetricsRef}
+                  style={{
+                    flex: 0.65,
+                    backgroundColor: "#fff",
+                    borderRadius: "12px",
+                    padding: "15px",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: 0,
+                    border: `1px solid ${colors.secondary}`,
+                  }}
+                >
+                  <h2
+                    style={{
+                      color: colors.textDark,
+                      marginBottom: "15px",
+                      fontWeight: "600",
+                      fontSize: "1.2rem",
+                      borderBottom: `1px solid ${colors.secondary}`,
+                      paddingBottom: "5px",
+                    }}
+                  >
+                    System Metrics
+                  </h2>
+                  <div style={{ flex: 1, minHeight: 0 }}>
+                    <BatteryMetricsCarousel
+                      bmsState={bmsState}
+                      roundValue={roundValue}
+                      containerRef={systemMetricsRef}
+                      colors={colors}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          /* Tables Section */
+          <div
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: "12px",
+              padding: "15px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              flex: 1,
+              overflow: "hidden",
+              border: `1px solid ${colors.secondary}`,
+            }}
+          >
+            <h2
+              style={{
+                color: colors.textDark,
+                marginBottom: "15px",
+                fontWeight: "600",
+                fontSize: "1.2rem",
+                borderBottom: `1px solid ${colors.secondary}`,
+                paddingBottom: "5px",
+              }}
+            >
+              Cell & Temperature Data
+            </h2>
+            <NodeTables nodeData={nodeData} colors={colors} />
+          </div>
+        )}
       </div>
 
       {/* Add a keyframe animation for the spinner */}
@@ -496,7 +552,7 @@ const Dashboard = ({ bmsData, signOut }) => {
 
 Dashboard.propTypes = {
   bmsData: PropTypes.object,
-  signOut: PropTypes.func.isRequired,
+  signOut: PropTypes.func,
 };
 
 export default Dashboard;
