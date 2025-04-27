@@ -1,18 +1,25 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "./Sidebar.js";
+import TopBanner from "./TopBanner.js";
 import { fetchData } from "./DataFetcher.js";
 import DataViewer from "./DataViewer.js";
 import LoadingSpinner from "./LoadingSpinner.js";
 
 const Page3 = ({ signOut }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedTagId, setSelectedTagId] = useState("0x440"); // Default TagID
   const [selectedTimeRange, setSelectedTimeRange] = useState("1hour"); // Default time range
   const [data, setData] = useState(null); // State to store fetched data
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(null); // Error state
+  const [darkMode, setDarkMode] = useState(false); // For dark mode toggle
   const navigate = useNavigate();
+
+  // Placeholder bmsState for TopBanner
+  const [bmsState, setBmsState] = useState({
+    DeviceId: { N: "ANALYTICS-DEVICE" },
+    SerialNumber: { N: "12345678" },
+    TagID: { S: "BAT-ANALYTICS" },
+  });
 
   // List of TagIDs
   const baseIds = [
@@ -68,28 +75,37 @@ const Page3 = ({ signOut }) => {
     }
   };
 
+  // Empty component for tab controls (needed for TopBanner)
+  const TabControls = () => <div></div>;
+
   return (
     <div
       style={{
         display: "flex",
+        flexDirection: "column",
         minHeight: "100vh",
         backgroundColor: "#f2f2f2", // OneUI light background
         fontFamily:
           "SamsungOne, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+        padding: "10px",
       }}
     >
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        signOut={signOut}
-        navigate={navigate}
-      />
+      {/* TopBanner replacing Sidebar */}
+      <TopBanner
+        user={{ username: "Analyst" }}
+        bmsState={bmsState}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        lastUpdate={new Date()}
+        isUpdating={loading}
+      >
+        <TabControls />
+      </TopBanner>
+
       <div
         style={{
           flex: 1,
-          padding: "20px",
           backgroundColor: "#f2f2f2", // OneUI light background
-          maxWidth: "calc(100% - 80px)",
         }}
       >
         <div
@@ -107,6 +123,8 @@ const Page3 = ({ signOut }) => {
               fontWeight: "600",
               color: "#1259c3", // OneUI blue
               marginBottom: "20px",
+              borderBottom: "1px solid #e0e0e0",
+              paddingBottom: "10px",
             }}
           >
             Data Analytics
@@ -238,7 +256,6 @@ const Page3 = ({ signOut }) => {
                 transition: "all 0.3s ease",
                 display: "inline-flex",
                 alignItems: "center",
-                justifyContent: "center",
               }}
               disabled={loading}
             >
@@ -307,6 +324,14 @@ const Page3 = ({ signOut }) => {
           )}
         </div>
       </div>
+
+      {/* Add spinner animation */}
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };

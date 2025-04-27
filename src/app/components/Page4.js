@@ -1,16 +1,23 @@
 import React, { useState } from "react";
-import Sidebar from "./Sidebar.js";
+import TopBanner from "./TopBanner.js";
 import { fetchLastWeekData } from "../../calc/lastweekdata.js";
 import { useNavigate } from "react-router-dom";
 
 const Page4 = ({ signOut }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedTagId, setSelectedTagId] = useState("0x440");
   const [selectedTimeRange, setSelectedTimeRange] = useState("7days");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
+
+  // Placeholder bmsState for TopBanner
+  const [bmsState, setBmsState] = useState({
+    DeviceId: { N: "SETTINGS-DEVICE" },
+    SerialNumber: { N: "12345678" },
+    TagID: { S: "BAT-SETTINGS" },
+  });
 
   // List of TagIDs
   const baseIds = [
@@ -69,28 +76,37 @@ const Page4 = ({ signOut }) => {
     }
   };
 
+  // Empty component for tab controls (needed for TopBanner)
+  const TabControls = () => <div></div>;
+
   return (
     <div
       style={{
         display: "flex",
+        flexDirection: "column",
         minHeight: "100vh",
         backgroundColor: "#f2f2f2", // OneUI light background
         fontFamily:
           "SamsungOne, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+        padding: "10px",
       }}
     >
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        signOut={signOut}
-        navigate={navigate}
-      />
+      {/* TopBanner replacing Sidebar */}
+      <TopBanner
+        user={{ username: "Admin" }}
+        bmsState={bmsState}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        lastUpdate={new Date()}
+        isUpdating={loading}
+      >
+        <TabControls />
+      </TopBanner>
+
       <div
         style={{
           flex: 1,
-          padding: "20px",
           backgroundColor: "#f2f2f2", // OneUI light background
-          maxWidth: "calc(100% - 80px)",
         }}
       >
         <div
@@ -108,6 +124,8 @@ const Page4 = ({ signOut }) => {
               fontWeight: "600",
               color: "#1259c3", // OneUI blue
               marginBottom: "20px",
+              borderBottom: "1px solid #e0e0e0",
+              paddingBottom: "10px",
             }}
           >
             System Settings
@@ -156,7 +174,7 @@ const Page4 = ({ signOut }) => {
                         display: "inline-block",
                         width: "50px",
                         height: "26px",
-                        backgroundColor: option.value ? "#1259c3" : "#e6e6e6",
+                        backgroundColor: option.value ? "#4CAF50" : "#e6e6e6", // Changed to green for active
                         borderRadius: "34px",
                         transition: "0.4s",
                         cursor: "pointer",
@@ -291,14 +309,14 @@ const Page4 = ({ signOut }) => {
                 onClick={handleFetchData}
                 style={{
                   padding: "12px 30px",
-                  backgroundColor: "#1259c3", // OneUI blue
+                  backgroundColor: "#4CAF50", // Changed to green for consistency
                   color: "white",
                   border: "none",
                   borderRadius: "25px", // Rounded corners for OneUI
                   cursor: "pointer",
                   fontSize: "16px",
                   fontWeight: "500",
-                  boxShadow: "0 2px 8px rgba(18, 89, 195, 0.3)",
+                  boxShadow: "0 2px 8px rgba(76, 175, 80, 0.3)", // Green shadow
                 }}
                 disabled={loading}
               >

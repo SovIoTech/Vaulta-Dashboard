@@ -93,6 +93,7 @@ const Dashboard = ({ bmsData, signOut }) => {
       setBmsState({});
     }
   }, [bmsData]);
+
   useEffect(() => {
     // If no bmsData is received or if bmsState is still null after initial load
     if (!bmsState) {
@@ -244,11 +245,10 @@ const Dashboard = ({ bmsData, signOut }) => {
         style={{
           margin: "0 5px",
           padding: "8px 16px",
-          backgroundColor:
-            activeTab === "cards" ? colors.accentGreen : "#ffffff",
+          backgroundColor: activeTab === "cards" ? "#4CAF50" : "#ffffff", // Changed to green for active tab
           color: activeTab === "cards" ? "#fff" : colors.textDark,
           border: "none",
-          borderRadius: "2px",
+          borderRadius: "5px",
           cursor: "pointer",
           fontWeight: "600",
           boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
@@ -262,11 +262,10 @@ const Dashboard = ({ bmsData, signOut }) => {
         style={{
           margin: "0 5px",
           padding: "8px 16px",
-          backgroundColor:
-            activeTab === "tables" ? colors.accentGreen : "#ffffff",
+          backgroundColor: activeTab === "tables" ? "#4CAF50" : "#ffffff", // Changed to green for active tab
           color: activeTab === "tables" ? "#fff" : colors.textDark,
           border: "none",
-          borderRadius: "2px",
+          borderRadius: "5px",
           cursor: "pointer",
           fontWeight: "600",
           boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
@@ -285,7 +284,7 @@ const Dashboard = ({ bmsData, signOut }) => {
           backgroundColor: isUpdating ? "#cccccc" : "#ffffff",
           color: colors.textDark,
           border: "none",
-          borderRadius: "2px",
+          borderRadius: "5px",
           cursor: isUpdating ? "not-allowed" : "pointer",
           fontWeight: "600",
           boxShadow: "0 1px 3px rgba(0,0,0,0.1)",

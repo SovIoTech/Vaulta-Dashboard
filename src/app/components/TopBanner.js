@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import logo from "../../logo.svg";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import DarkModeToggle from "./DarkModeToggle.js";
 import { signOut } from "aws-amplify/auth";
 
@@ -16,6 +16,7 @@ const TopBanner = ({
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Format the lastUpdate timestamp
   const formatTime = (date) => {
@@ -53,34 +54,39 @@ const TopBanner = ({
     {
       icon: "📊",
       label: "Dashboard",
-      onClick: () => navigate("/dashboard"),
+      path: "/dashboard",
     },
     {
       icon: "👥",
       label: "User Management",
-      onClick: () => navigate("/page2"),
+      path: "/page2",
     },
     {
       icon: "📈",
       label: "Data Analytics",
-      onClick: () => navigate("/page3"),
+      path: "/page3",
     },
     {
       icon: "🧠",
       label: "ML Dashboard",
-      onClick: () => navigate("/ml-dashboard"),
+      path: "/ml-dashboard",
     },
     {
       icon: "⚙️",
       label: "System Settings",
-      onClick: () => navigate("/page4"),
+      path: "/page4",
     },
     {
       icon: "🔋",
       label: "Energy Monitor",
-      onClick: () => navigate("/page5"),
+      path: "/page5",
     },
   ];
+
+  // Check if a menu item is active based on current location path
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
 
   return (
     <div
@@ -106,11 +112,11 @@ const TopBanner = ({
           borderBottom: "1px solid #e6e6e6",
         }}
       >
-        {/* Logo Square - now full height */}
+        {/* Logo Square - now larger */}
         <div
           style={{
-            height: "60px",
-            width: "60px",
+            height: "80px", // Increased from 60px
+            width: "80px", // Increased from 60px
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -146,6 +152,16 @@ const TopBanner = ({
           >
             Battery Management Dashboard
           </h1>
+          <p
+            style={{
+              margin: "5px 0 0 0",
+              fontSize: "0.9rem",
+              color: "#666",
+            }}
+          >
+            Device: {bmsState?.DeviceId?.N || "N/A"} • TagID:{" "}
+            {bmsState?.TagID?.S || "N/A"}
+          </p>
         </div>
 
         {/* User Dropdown and Dark Mode Toggle */}
@@ -160,7 +176,11 @@ const TopBanner = ({
             <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
           )}
 
-          <div className="user-menu" ref={dropdownRef}>
+          <div
+            className="user-menu"
+            ref={dropdownRef}
+            style={{ position: "relative" }}
+          >
             <button
               onClick={() => setDropdownOpen(!isDropdownOpen)}
               style={{
@@ -175,6 +195,8 @@ const TopBanner = ({
                 padding: "8px 16px",
                 borderRadius: "20px",
                 transition: "background 0.3s ease, transform 0.2s ease",
+                position: "relative", // Add position relative
+                zIndex: "1", // Ensure the button stays on top
               }}
             >
               {user?.username || "User"} ▼
@@ -285,21 +307,18 @@ const TopBanner = ({
           {menuItems.map((item, index) => (
             <button
               key={index}
-              onClick={item.onClick}
+              onClick={() => navigate(item.path)}
               style={{
                 display: "flex",
                 alignItems: "center",
                 padding: "8px 12px",
-                backgroundColor: "#fff",
-                color: "#333",
+                backgroundColor: isActive(item.path) ? "#4CAF50" : "#fff", // Green for active tab
+                color: isActive(item.path) ? "#fff" : "#333",
                 border: "1px solid #e6e6e6",
                 borderRadius: "5px",
                 cursor: "pointer",
                 fontSize: "0.9rem",
                 transition: "background-color 0.2s",
-                ":hover": {
-                  backgroundColor: "#f5f5f9",
-                },
               }}
             >
               <span style={{ marginRight: "8px", fontSize: "1rem" }}>
