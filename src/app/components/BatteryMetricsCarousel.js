@@ -25,13 +25,19 @@ ChartJS.register(
   Filler
 );
 
-const BatteryMetricsCarousel = ({
-  bmsState,
-  roundValue,
-  containerRef,
-  colors = {},
-}) => {
-  // Generate historical data for visualization with more points for better graphs
+const BatteryMetricsCarousel = ({ bmsState, roundValue, containerRef }) => {
+  // Using only WeatherCard colors
+  const colors = {
+    primary: "#818181",
+    secondary: "#c0c0c0",
+    accentGreen: "#4CAF50",
+    highlight: "#FFC107",
+    background: "rgba(192, 192, 192, 0.1)",
+    textDark: "#333333",
+    textLight: "#555555",
+  };
+
+  // Generate historical data
   const [history, setHistory] = useState({
     SOCPercent: [82, 83, 85, 87, 89, 90, 92, 91, 90, 89],
     SOB: [95, 96, 97, 97, 98, 98, 98, 97, 97, 96],
@@ -39,13 +45,13 @@ const BatteryMetricsCarousel = ({
     SOH: [96, 96, 95, 95, 95, 95, 94, 94, 94, 95],
   });
 
-  // Generate timestamps for x-axis
+  // Generate timestamps
   const generateTimeLabels = (count) => {
     const labels = [];
     const now = new Date();
 
     for (let i = count - 1; i >= 0; i--) {
-      const time = new Date(now - i * 15 * 60000); // 15-minute intervals
+      const time = new Date(now - i * 15 * 60000);
       labels.push(
         time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
       );
@@ -56,42 +62,37 @@ const BatteryMetricsCarousel = ({
 
   const timeLabels = generateTimeLabels(10);
 
-  // Update history with new values on component update
+  // Update history
   useEffect(() => {
     setHistory((prev) => {
       const newHistory = { ...prev };
 
-      // Update SOC history
       if (bmsState.SOCPercent?.N) {
         const socValue = parseFloat(bmsState.SOCPercent.N);
         newHistory.SOCPercent = [...prev.SOCPercent.slice(1), socValue];
       }
 
-      // Update Temperature history with MaxCellTemp
       if (bmsState.MaxCellTemp?.N) {
         const tempValue = parseFloat(bmsState.MaxCellTemp.N);
         newHistory.Temperature = [...prev.Temperature.slice(1), tempValue];
       }
 
-      // For SOB and SOH, we'll use dummy updates since these values are placeholders
-      newHistory.SOB = [...prev.SOB.slice(1), 98]; // Simulated State of Balance
-      newHistory.SOH = [...prev.SOH.slice(1), 95]; // Simulated State of Health
+      newHistory.SOB = [...prev.SOB.slice(1), 98];
+      newHistory.SOH = [...prev.SOH.slice(1), 95];
 
       return newHistory;
     });
   }, [bmsState]);
 
-  // Helper function to calculate fill color based on value and max
+  // Calculate color based only on allowed colors
   const calculateColor = (value, max) => {
     const percentage = (value / max) * 100;
-
-    if (percentage >= 90) return colors.accentGreen || "#8BC34A";
-    if (percentage >= 60) return colors.highlight || "#FFC107";
-    if (percentage >= 30) return colors.primary || "#FF9800";
-    return colors.secondary || "#dddddd";
+    if (percentage >= 90) return colors.accentGreen;
+    if (percentage >= 60) return colors.highlight;
+    return colors.primary;
   };
 
-  // Define the metrics cards data
+  // Metrics data
   const metricsData = [
     {
       title: "State of Charge",
@@ -103,41 +104,41 @@ const BatteryMetricsCarousel = ({
         14
       )} kWh`,
       status: "Charging • +4000W • 0.4C",
-      statusColor: colors.accentGreen || "#8BC34A",
+      statusColor: colors.accentGreen,
     },
     {
       title: "State of Balance",
       key: "SOB",
-      value: 98, // Placeholder value
+      value: 98,
       maxValue: 100,
       unit: "%",
       additionalInfo: "MIN 3.35V • AVE 3.35V • MAX 3.37V",
       status: "All cells within optimal range",
-      statusColor: colors.accentGreen || "#8BC34A",
+      statusColor: colors.accentGreen,
     },
     {
       title: "Battery Temperature",
       key: "Temperature",
-      value: parseFloat(bmsState.MaxCellTemp?.N || 36), // Use MaxCellTemp if available
+      value: parseFloat(bmsState.MaxCellTemp?.N || 36),
       maxValue: 60,
       unit: "°C",
       additionalInfo: "MIN 35.5°C • MAX 37.5°C",
       status: "Temperature within safe range",
-      statusColor: colors.accentGreen || "#8BC34A",
+      statusColor: colors.accentGreen,
     },
     {
       title: "State of Health",
       key: "SOH",
-      value: 95, // Placeholder value
+      value: 95,
       maxValue: 100,
       unit: "%",
       additionalInfo: "System Up-time: 99%",
       status: "Battery in excellent condition",
-      statusColor: colors.accentGreen || "#8BC34A",
+      statusColor: colors.accentGreen,
     },
   ];
 
-  // Create chart options and data
+  // Chart data creation
   const createChartData = (historyData, color) => {
     return {
       labels: timeLabels,
@@ -151,7 +152,7 @@ const BatteryMetricsCarousel = ({
           tension: 0.4,
           fill: {
             target: "origin",
-            above: color + "20", // Add 20% opacity to the color
+            above: color + "20",
           },
         },
       ],
@@ -167,10 +168,10 @@ const BatteryMetricsCarousel = ({
       },
       tooltip: {
         enabled: true,
-        backgroundColor: "rgba(255,255,255,0.8)",
-        titleColor: "#333",
-        bodyColor: "#333",
-        borderColor: "#ddd",
+        backgroundColor: "#fff",
+        titleColor: colors.textDark,
+        bodyColor: colors.textDark,
+        borderColor: colors.secondary,
         borderWidth: 1,
         padding: 8,
         displayColors: false,
@@ -200,14 +201,9 @@ const BatteryMetricsCarousel = ({
         hoverRadius: 4,
       },
     },
-    interaction: {
-      mode: "nearest",
-      axis: "x",
-      intersect: false,
-    },
   };
 
-  // Create a single metric card
+  // Metric card component
   const MetricCard = ({ metric }) => {
     const color = calculateColor(metric.value, metric.maxValue);
     const historyData = history[metric.key] || [];
@@ -217,13 +213,13 @@ const BatteryMetricsCarousel = ({
       <div
         style={{
           backgroundColor: "#fff",
-          borderRadius: "8px",
+          borderRadius: "12px",
           padding: "15px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          border: `1px solid ${colors.secondary || "#e0e0e0"}`,
+          border: `1px solid ${colors.secondary}`,
           transition: "all 0.3s ease",
           height: "75%",
           transform: "scale(1.3)",
@@ -231,6 +227,7 @@ const BatteryMetricsCarousel = ({
           margin: "12%",
           position: "relative",
           overflow: "hidden",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
         }}
       >
         <h3
@@ -238,10 +235,10 @@ const BatteryMetricsCarousel = ({
             fontSize: "1.1rem",
             marginBottom: "4px",
             textAlign: "center",
-            color: colors.textDark || "#333",
+            color: colors.textDark,
             fontWeight: "600",
             position: "relative",
-            zIndex: "2", // Keep above the chart
+            zIndex: "2",
           }}
         >
           {metric.title}
@@ -253,7 +250,7 @@ const BatteryMetricsCarousel = ({
             maxWidth: "120px",
             margin: "0 auto 8px auto",
             position: "relative",
-            zIndex: "2", // Keep gauge above background graph
+            zIndex: "2",
           }}
         >
           <CircularProgressbar
@@ -262,8 +259,8 @@ const BatteryMetricsCarousel = ({
             styles={buildStyles({
               textSize: "22px",
               pathColor: color,
-              textColor: colors.textDark || "#333",
-              trailColor: "#eee",
+              textColor: colors.textDark,
+              trailColor: colors.background,
               pathTransitionDuration: 0.5,
             })}
           />
@@ -272,12 +269,12 @@ const BatteryMetricsCarousel = ({
         <div
           style={{
             fontSize: "0.9rem",
-            color: colors.textLight || "#666",
+            color: colors.textLight,
             textAlign: "center",
             marginBottom: "5px",
             fontWeight: "500",
             position: "relative",
-            zIndex: "2", // Keep text above background graph
+            zIndex: "2",
           }}
         >
           {metric.additionalInfo}
@@ -290,7 +287,7 @@ const BatteryMetricsCarousel = ({
             fontWeight: "bold",
             textAlign: "center",
             position: "relative",
-            zIndex: "2", // Keep status above background graph
+            zIndex: "2",
           }}
         >
           {metric.status}
@@ -328,6 +325,9 @@ const BatteryMetricsCarousel = ({
         gridTemplateRows: "repeat(2, 1fr)",
         gap: "5px",
         padding: "5px",
+        backgroundColor: colors.background,
+        borderRadius: "12px",
+        border: `1px solid ${colors.secondary}`,
       }}
     >
       {metricsData.map((metric, index) => (
@@ -341,7 +341,6 @@ BatteryMetricsCarousel.propTypes = {
   bmsState: PropTypes.object.isRequired,
   roundValue: PropTypes.func.isRequired,
   containerRef: PropTypes.object,
-  colors: PropTypes.object,
 };
 
 export default BatteryMetricsCarousel;

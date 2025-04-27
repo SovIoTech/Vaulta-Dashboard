@@ -71,39 +71,39 @@ const Cards = ({ bmsState, roundValue, colors = {} }) => {
     {
       label: "Capacity (Ah)",
       value: roundValue(bmsState.SOCAh?.N || 0),
-      icon: "⚡",
+      icon: "",
       color: cardColors.primary,
     },
     {
       label: "Battery Level",
       value: `${roundValue(bmsState.SOCPercent?.N || 0)}%`,
-      icon: "%",
+      icon: "",
       color: cardColors.primary,
     },
     // Voltage Readings
     {
       label: "Load Voltage",
       value: `${roundValue(bmsState.TotalLoadVoltage?.N || 0)} V`,
-      icon: "🔌",
+      icon: "",
       color: cardColors.primary,
     },
     {
       label: "Battery Voltage",
       value: `${roundValue(bmsState.TotalBattVoltage?.N || 0)} V`,
-      icon: "🔋",
+      icon: "",
       color: cardColors.accentGreen,
     },
     // Current & Environmental Impact
     {
       label: "Total Current",
       value: `${roundValue(bmsState.TotalCurrent?.N || 0)} A`,
-      icon: "⚡",
+      icon: "",
       color: cardColors.highlight,
     },
     {
       label: "Carbon Offset",
       value: `${roundValue(bmsState.Carbon_Offset_kg?.N || 0)} kg`,
-      icon: "🌍",
+      icon: "",
       color: cardColors.accentGreen,
     },
   ];
