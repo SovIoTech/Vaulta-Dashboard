@@ -10,14 +10,22 @@ const Gauges = ({ bmsState, roundValue }) => {
 
   // Strictly using only WeatherCard colors
   const colors = {
-    primary: '#818181',
-    secondary: '#c0c0c0',
-    accentGreen: '#4CAF50',
-    accentRed: '#F44336',
-    background: 'rgba(192, 192, 192, 0.1)',
-    textDark: '#333333',
-    textLight: '#555555',
-    highlight: '#FFC107'
+    primary: "#818181",
+    secondary: "#c0c0c0",
+    accentGreen: "#4CAF50",
+    accentRed: "#F44336",
+    background: "rgba(192, 192, 192, 0.1)",
+    textDark: "#333333",
+    textLight: "#555555",
+    highlight: "#FFC107",
+  };
+
+  const gaugeColors = {
+    // Your existing colors...
+    gaugeDarkGray: "#333333",
+    gaugeGray: "#666666",
+    gaugeBlack: "#000000",
+    // Keep your other colors...
   };
 
   // Track history of values
@@ -54,10 +62,7 @@ const Gauges = ({ bmsState, roundValue }) => {
   }, [bmsState]);
 
   const calculateColor = (value, max) => {
-    const percentage = (value / max) * 100;
-    if (percentage >= 90) return colors.accentRed;
-    if (percentage >= 60) return colors.highlight;
-    return colors.primary; // Using primary gray for all other states
+    return "#808080"; // Using primary gray for all other states
   };
 
   const gauges = [
@@ -69,7 +74,8 @@ const Gauges = ({ bmsState, roundValue }) => {
       min: 0,
       max: 100,
       unit: "°C",
-      status: percentage => percentage >= 90 ? "Critical" : percentage >= 60 ? "Warning" : "Normal",
+      status: (percentage) =>
+        percentage >= 90 ? "Critical" : percentage >= 60 ? "Warning" : "Normal",
     },
     {
       title: "Max Cell Voltage",
@@ -81,7 +87,8 @@ const Gauges = ({ bmsState, roundValue }) => {
       min: 0,
       max: 5,
       unit: "V",
-      status: percentage => percentage >= 90 ? "High" : percentage >= 60 ? "Elevated" : "Optimal",
+      status: (percentage) =>
+        percentage >= 90 ? "High" : percentage >= 60 ? "Elevated" : "Optimal",
     },
     {
       title: "Min Cell Temp",
@@ -91,7 +98,8 @@ const Gauges = ({ bmsState, roundValue }) => {
       min: 0,
       max: 100,
       unit: "°C",
-      status: percentage => percentage >= 90 ? "Critical" : percentage >= 60 ? "Warning" : "Stable",
+      status: (percentage) =>
+        percentage >= 90 ? "Critical" : percentage >= 60 ? "Warning" : "Stable",
     },
     {
       title: "Min Cell Voltage",
@@ -103,7 +111,8 @@ const Gauges = ({ bmsState, roundValue }) => {
       min: 0,
       max: 5,
       unit: "V",
-      status: percentage => percentage >= 90 ? "Low" : percentage >= 60 ? "Fair" : "Good",
+      status: (percentage) =>
+        percentage >= 90 ? "Low" : percentage >= 60 ? "Fair" : "Good",
     },
   ];
 
@@ -128,11 +137,43 @@ const Gauges = ({ bmsState, roundValue }) => {
       .join(", ");
 
     return (
-      <div style={{ position: "relative", height: chartHeight, marginTop: "10px", opacity: 0.6 }}>
-        <svg width="100%" height="100%" viewBox={`0 0 100 ${chartHeight}`} preserveAspectRatio="none">
-          <line x1="0" y1={chartHeight} x2="100%" y2={chartHeight} stroke={colors.secondary} strokeWidth="0.5" />
-          <line x1="0" y1="0" x2="100%" y2="0" stroke={colors.secondary} strokeWidth="0.5" />
-          <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" />
+      <div
+        style={{
+          position: "relative",
+          height: chartHeight,
+          marginTop: "10px",
+          opacity: 0.6,
+        }}
+      >
+        <svg
+          width="100%"
+          height="100%"
+          viewBox={`0 0 100 ${chartHeight}`}
+          preserveAspectRatio="none"
+        >
+          <line
+            x1="0"
+            y1={chartHeight}
+            x2="100%"
+            y2={chartHeight}
+            stroke={colors.secondary}
+            strokeWidth="0.5"
+          />
+          <line
+            x1="0"
+            y1="0"
+            x2="100%"
+            y2="0"
+            stroke={colors.secondary}
+            strokeWidth="0.5"
+          />
+          <polyline
+            points={points}
+            fill="none"
+            stroke={color}
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          />
 
           {data.map((entry, i) => {
             const x = (i / (data.length - 1)) * 100;
@@ -162,18 +203,20 @@ const Gauges = ({ bmsState, roundValue }) => {
         </svg>
 
         {hoveredPoint && (
-          <div style={{
-            position: "absolute",
-            bottom: "100%",
-            left: `${(hoveredPoint.index / (data.length - 1)) * 100}%`,
-            transform: "translateX(-50%)",
-            background: colors.textDark,
-            color: "#fff",
-            padding: "4px 8px",
-            borderRadius: "4px",
-            fontSize: "12px",
-            whiteSpace: "nowrap",
-          }}>
+          <div
+            style={{
+              position: "absolute",
+              bottom: "100%",
+              left: `${(hoveredPoint.index / (data.length - 1)) * 100}%`,
+              transform: "translateX(-50%)",
+              background: colors.textDark,
+              color: "#fff",
+              padding: "4px 8px",
+              borderRadius: "4px",
+              fontSize: "12px",
+              whiteSpace: "nowrap",
+            }}
+          >
             {hoveredPoint.entry.value.toFixed(2)}
             {gauges.find((g) => g.key === data.key)?.unit}
             <br />
@@ -191,44 +234,52 @@ const Gauges = ({ bmsState, roundValue }) => {
     const statusText = gauge.status(percentage);
 
     return (
-      <div style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        padding: "20px",
-        backgroundColor: "#fff",
-        borderRadius: "12px",
-        border: `1px solid ${colors.primary}`,
-        margin: "0 10px",
-        height: "100%",
-        minHeight: "300px",
-        position: "relative",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-        transition: "all 0.3s ease",
-        ':hover': {
-          boxShadow: "0 6px 16px rgba(0,0,0,0.15)"
-        }
-      }}>
-        <h3 style={{
-          fontSize: "1.1rem",
-          marginBottom: "12px",
-          fontWeight: "700",
-          color: colors.textDark,
-          textAlign: "center",
-          letterSpacing: "0.5px"
-        }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          padding: "20px",
+          backgroundColor: "#fff",
+          borderRadius: "12px",
+          border: `1px solid ${colors.primary}`,
+          margin: "0 10px",
+          height: "100%",
+          minHeight: "300px",
+          position: "relative",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          transition: "all 0.3s ease",
+          ":hover": {
+            boxShadow: "0 6px 16px rgba(0,0,0,0.15)",
+          },
+        }}
+      >
+        <h3
+          style={{
+            fontSize: "1.1rem",
+            marginBottom: "12px",
+            fontWeight: "700",
+            color: colors.textDark,
+            textAlign: "center",
+            letterSpacing: "0.5px",
+          }}
+        >
           {gauge.title}
         </h3>
 
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          flex: 1,
-          position: "relative",
-        }}>
-          <div style={{ width: "140px", height: "140px", margin: "0 auto 15px" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            flex: 1,
+            position: "relative",
+          }}
+        >
+          <div
+            style={{ width: "140px", height: "140px", margin: "0 auto 15px" }}
+          >
             <CircularProgressbar
               value={percentage}
               text={`${gauge.value}${gauge.unit}`}
@@ -242,41 +293,53 @@ const Gauges = ({ bmsState, roundValue }) => {
             />
           </div>
 
-          <div style={{
-            fontSize: "0.9rem",
-            color: colors.textLight,
-            marginBottom: "12px",
-            padding: "8px 12px",
-            background: colors.background,
-            borderRadius: "8px",
-            textAlign: "center",
-            fontWeight: "500",
-            border: `1px solid ${colors.secondary}`
-          }}>
+          <div
+            style={{
+              fontSize: "0.9rem",
+              color: colors.textLight,
+              marginBottom: "12px",
+              padding: "8px 12px",
+              background: colors.background,
+              borderRadius: "8px",
+              textAlign: "center",
+              fontWeight: "500",
+              border: `1px solid ${colors.secondary}`,
+            }}
+          >
             {gauge.info}
           </div>
 
-          <div style={{
-            padding: "6px 16px",
-            backgroundColor: `${color}20`,
-            color: color,
-            borderRadius: "20px",
-            fontWeight: "600",
-            fontSize: "0.85rem",
-            border: `1px solid ${color}50`
-          }}>
+          <div
+            style={{
+              padding: "6px 16px",
+              backgroundColor: `${color}20`,
+              color: color,
+              borderRadius: "20px",
+              fontWeight: "600",
+              fontSize: "0.85rem",
+              border: `1px solid ${color}50`,
+            }}
+          >
             {statusText}
           </div>
         </div>
 
-        <div style={{
-          position: "absolute",
-          bottom: "15px",
-          left: "15px",
-          right: "15px",
-          height: "50px",
-        }}>
-          <MiniChart data={historyData} min={gauge.min} max={gauge.max} color={color} key={gauge.key} />
+        <div
+          style={{
+            position: "absolute",
+            bottom: "15px",
+            left: "15px",
+            right: "15px",
+            height: "50px",
+          }}
+        >
+          <MiniChart
+            data={historyData}
+            min={gauge.min}
+            max={gauge.max}
+            color={color}
+            key={gauge.key}
+          />
         </div>
       </div>
     );
@@ -311,17 +374,20 @@ const Gauges = ({ bmsState, roundValue }) => {
   };
 
   return (
-    <div style={{
-      height: "100%",
-      display: "flex",
-      flexDirection: "column",
-      position: "relative",
-      background: colors.background,
-      borderRadius: "12px",
-      overflow: "hidden",
-      padding: "10px",
-      border: `1px solid ${colors.secondary}`
-    }} onTouchStart={handleTouchStart}>
+    <div
+      style={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+        background: colors.background,
+        borderRadius: "12px",
+        overflow: "hidden",
+        padding: "10px",
+        border: `1px solid ${colors.secondary}`,
+      }}
+      onTouchStart={handleTouchStart}
+    >
       <AnimatePresence mode="wait">
         <motion.div
           key={currentPage}
@@ -337,7 +403,9 @@ const Gauges = ({ bmsState, roundValue }) => {
         </motion.div>
       </AnimatePresence>
 
-      <div style={{ display: "flex", justifyContent: "center", padding: "10px" }}>
+      <div
+        style={{ display: "flex", justifyContent: "center", padding: "10px" }}
+      >
         {pages.map((_, index) => (
           <button
             key={index}
@@ -346,7 +414,8 @@ const Gauges = ({ bmsState, roundValue }) => {
               width: "12px",
               height: "12px",
               borderRadius: "50%",
-              background: index === currentPage ? colors.primary : colors.secondary,
+              background:
+                index === currentPage ? colors.primary : colors.secondary,
               border: "none",
               margin: "0 5px",
               cursor: "pointer",

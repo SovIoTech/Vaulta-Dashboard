@@ -86,10 +86,7 @@ const BatteryMetricsCarousel = ({ bmsState, roundValue, containerRef }) => {
 
   // Calculate color based only on allowed colors
   const calculateColor = (value, max) => {
-    const percentage = (value / max) * 100;
-    if (percentage >= 90) return colors.accentGreen;
-    if (percentage >= 60) return colors.highlight;
-    return colors.primary;
+    return "#808080";
   };
 
   // Metrics data

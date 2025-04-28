@@ -52,32 +52,32 @@ const TopBanner = ({
   // Menu items from sidebar - now in topbar
   const menuItems = [
     {
-      icon: "📊",
+      icon: "",
       label: "Dashboard",
       path: "/dashboard",
     },
     {
-      icon: "👥",
+      icon: "",
       label: "User Management",
       path: "/page2",
     },
     {
-      icon: "📈",
+      icon: "",
       label: "Data Analytics",
       path: "/page3",
     },
     {
-      icon: "🧠",
+      icon: "",
       label: "ML Dashboard",
       path: "/ml-dashboard",
     },
     {
-      icon: "⚙️",
+      icon: "",
       label: "System Settings",
       path: "/page4",
     },
     {
-      icon: "🔋",
+      icon: "",
       label: "Energy Monitor",
       path: "/page5",
     },

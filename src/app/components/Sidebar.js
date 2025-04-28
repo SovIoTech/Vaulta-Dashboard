@@ -7,32 +7,32 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
   const menuItems = [
     {
-      icon: "📊",
+      icon: "",
       label: "Dashboard",
       onClick: () => navigate("/dashboard"),
     },
     {
-      icon: "👥",
+      icon: "",
       label: "User Management",
       onClick: () => navigate("/page2"),
     },
     {
-      icon: "📈",
+      icon: "",
       label: "Data Analytics",
       onClick: () => navigate("/page3"),
     },
     {
-      icon: "🧠",
+      icon: "",
       label: "ML Dashboard",
       onClick: () => navigate("/ml-dashboard"),
     },
     {
-      icon: "⚙️",
+      icon: "",
       label: "System Settings",
       onClick: () => navigate("/page4"),
     },
     {
-      icon: "🔋",
+      icon: "",
       label: "Energy Monitor",
       onClick: () => navigate("/page5"),
     },
