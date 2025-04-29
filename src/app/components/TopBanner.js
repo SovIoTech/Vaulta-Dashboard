@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import logo from "../../logo.svg";
 import { useNavigate, useLocation } from "react-router-dom";
 import DarkModeToggle from "./DarkModeToggle.js";
@@ -13,8 +13,6 @@ const TopBanner = ({
   darkMode,
   setDarkMode,
 }) => {
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,20 +21,6 @@ const TopBanner = ({
     if (!date) return "N/A";
     return date.toLocaleTimeString();
   };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   // Handle sign out
   const handleSignOut = async () => {
@@ -115,8 +99,8 @@ const TopBanner = ({
         {/* Logo Square - now larger */}
         <div
           style={{
-            height: "80px", // Increased from 60px
-            width: "80px", // Increased from 60px
+            height: "80px",
+            width: "80px",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -164,7 +148,7 @@ const TopBanner = ({
           </p>
         </div>
 
-        {/* User Dropdown and Dark Mode Toggle */}
+        {/* User Controls */}
         <div
           style={{
             display: "flex",
@@ -172,118 +156,51 @@ const TopBanner = ({
             gap: "15px",
           }}
         >
+          {/* Wider Sign Out Button with light grey shade */}
+          <button
+            onClick={handleSignOut}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "10px 20px", // Increased padding for wider button
+              backgroundColor: "#f5f5f5", // Light grey background
+              color: "#333",
+              border: "1px solid #e0e0e0", // Slightly darker border
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "0.9rem",
+              transition: "all 0.2s ease",
+              minWidth: "120px", // Minimum width to ensure consistency
+              fontWeight: "500",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+              ":hover": {
+                backgroundColor: "#e0e0e0", // Slightly darker on hover
+              },
+            }}
+          >
+            <span style={{ marginRight: "8px" }}>
+              {/* Sign out icon can be added here */}⎋
+            </span>
+            Sign Out
+          </button>
+
           {setDarkMode && (
             <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
           )}
 
+          {/* User info display (removed dropdown) */}
           <div
-            className="user-menu"
-            ref={dropdownRef}
-            style={{ position: "relative" }}
+            style={{
+              padding: "8px 12px",
+              backgroundColor: "rgba(18, 89, 195, 0.1)",
+              borderRadius: "20px",
+              color: "#1259c3",
+              fontSize: "0.9rem",
+              fontWeight: "500",
+            }}
           >
-            <button
-              onClick={() => setDropdownOpen(!isDropdownOpen)}
-              style={{
-                background: "rgba(18, 89, 195, 0.1)",
-                border: "none",
-                color: "#1259c3",
-                fontSize: "14px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "5px",
-                padding: "8px 16px",
-                borderRadius: "20px",
-                transition: "background 0.3s ease, transform 0.2s ease",
-                position: "relative", // Add position relative
-                zIndex: "1", // Ensure the button stays on top
-              }}
-            >
-              {user?.username || "User"} ▼
-            </button>
-
-            {isDropdownOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  right: "0",
-                  backgroundColor: "white",
-                  border: "1px solid #ddd",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                  zIndex: "1000",
-                  minWidth: "200px",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    padding: "12px 15px",
-                    fontSize: "14px",
-                    color: "#333",
-                    borderBottom: "1px solid #eee",
-                  }}
-                >
-                  <strong>User:</strong> {user?.username || "User"}
-                </div>
-                <div
-                  style={{
-                    padding: "12px 15px",
-                    fontSize: "14px",
-                    color: "#333",
-                    borderBottom: "1px solid #eee",
-                  }}
-                >
-                  <strong>Device ID:</strong> {bmsState?.DeviceId?.N || "N/A"}
-                </div>
-                <div
-                  style={{
-                    padding: "12px 15px",
-                    fontSize: "14px",
-                    color: "#333",
-                    borderBottom: "1px solid #eee",
-                  }}
-                >
-                  <strong>Serial Number:</strong>{" "}
-                  {bmsState?.SerialNumber?.N || "N/A"}
-                </div>
-                <div
-                  style={{
-                    padding: "12px 15px",
-                    fontSize: "14px",
-                    color: "#333",
-                    borderBottom: "1px solid #eee",
-                  }}
-                >
-                  <strong>Tag ID:</strong> {bmsState?.TagID?.S || "N/A"}
-                </div>
-                <div
-                  style={{
-                    padding: "12px 15px",
-                    fontSize: "14px",
-                    color: "#333",
-                    borderBottom: "1px solid #eee",
-                  }}
-                >
-                  <strong>Last Updated:</strong>{" "}
-                  <span style={{ color: isUpdating ? "#FF9800" : "#4CAF50" }}>
-                    {formatTime(lastUpdate)} {isUpdating && "(Updating...)"}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    padding: "12px 15px",
-                    fontSize: "14px",
-                    color: "#333",
-                    cursor: "pointer",
-                  }}
-                  onClick={handleSignOut}
-                >
-                  Sign Out
-                </div>
-              </div>
-            )}
+            {user?.username || "User"}
           </div>
         </div>
       </div>
@@ -312,7 +229,7 @@ const TopBanner = ({
                 display: "flex",
                 alignItems: "center",
                 padding: "8px 12px",
-                backgroundColor: isActive(item.path) ? "#4CAF50" : "#fff", // Green for active tab
+                backgroundColor: isActive(item.path) ? "#4CAF50" : "#fff",
                 color: isActive(item.path) ? "#fff" : "#333",
                 border: "1px solid #e6e6e6",
                 borderRadius: "5px",
@@ -329,7 +246,7 @@ const TopBanner = ({
           ))}
         </div>
 
-        {/* Right: Tab Controls - moved to left bottom */}
+        {/* Right: Tab Controls */}
         <div
           style={{
             display: "flex",
