@@ -65,6 +65,12 @@ export const fetchData = async (selectedTagId, selectedTimeRange) => {
         voltage: {
           cellVoltages: Array.from({ length: 14 }, () => []), // Array of arrays for each cell voltage
         },
+        timestamps: {}, // Object to hold temperature arrays for each sensor
+      },
+      Node0: {
+        voltage: {
+          cellVoltages: Array.from({ length: 14 }, () => []), // Array of arrays for each cell voltage
+        },
         temperature: {}, // Object to hold temperature arrays for each sensor
       },
       Node1: {
@@ -112,12 +118,24 @@ export const fetchData = async (selectedTagId, selectedTimeRange) => {
         balanceSOCPercent: null,
         balanceSOCAh: null,
       },
+      Timestamps: {
+        timestamps: [], // Initialize as array instead of object
+      },
     };
 
     // Iterate through all fetched data objects
     fetchedData.forEach((item) => {
       // Log the current item to debug
       // console.log("Processing item:", item);
+
+      fetchedData.forEach((item, index) => {
+        if (item.Timestamp?.N) {
+          // Convert timestamp to number and push to array
+          structuredData.Timestamps.timestamps.push(
+            roundToTwoDecimals(parseFloat(item.Timestamp.N))
+          );
+        }
+      });
 
       // Process Node0 data
       for (let i = 0; i < 14; i++) {
@@ -256,6 +274,16 @@ export const fetchData = async (selectedTagId, selectedTimeRange) => {
           : null,
       };
     });
+
+    const allTimestamps = fetchedData.map((item) =>
+      parseFloat(item.Timestamp?.N)
+    );
+    const uniqueTimestamps = [...new Set(allTimestamps)];
+    //const firstFiveUniqueTimestamps = uniqueTimestamps.slice(0, 5);
+
+    structuredData.Timestamps = {
+      timestamps: uniqueTimestamps.map((ts) => roundToTwoDecimals(ts)),
+    };
 
     // Log the structured data
     console.log("Structured Data:", structuredData);

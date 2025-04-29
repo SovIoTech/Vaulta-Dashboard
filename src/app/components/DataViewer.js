@@ -6,14 +6,13 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
   ResponsiveContainer,
 } from "recharts";
 
+// Updated color scheme to match industrial UI style
 const colors = {
   primary: "#818181",
   secondary: "#c0c0c0",
@@ -150,6 +149,7 @@ const DataViewer = ({ loading, error, data }) => {
         flexDirection: "column",
         height: "100%",
         gap: "20px",
+        fontFamily: "Arial, sans-serif",
       }}
     >
       {/* Main content area - side by side containers */}
@@ -188,27 +188,22 @@ const DataViewer = ({ loading, error, data }) => {
                 fontWeight: "600",
                 color: colors.textDark,
                 margin: "0 0 10px 0",
+                borderBottom: `1px solid ${colors.secondary}`,
+                paddingBottom: "5px",
               }}
             >
               Pack Data
             </h3>
             <div style={{ flex: 1 }}>
+              {/* PieChart replaced with LineChart */}
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={packData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={60}
-                    fill={colors.primary}
-                    label
-                  >
-                    {packData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={colors.primary} />
-                    ))}
-                  </Pie>
+                <LineChart data={packData}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={colors.secondary}
+                  />
+                  <XAxis dataKey="name" stroke={colors.textLight} />
+                  <YAxis stroke={colors.textLight} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: colors.background,
@@ -216,7 +211,14 @@ const DataViewer = ({ loading, error, data }) => {
                       borderRadius: "6px",
                     }}
                   />
-                </PieChart>
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke={colors.primary}
+                    strokeWidth={2}
+                    dot={{ fill: colors.primary, r: 5 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
@@ -238,13 +240,16 @@ const DataViewer = ({ loading, error, data }) => {
                 fontWeight: "600",
                 color: colors.textDark,
                 margin: "0 0 10px 0",
+                borderBottom: `1px solid ${colors.secondary}`,
+                paddingBottom: "5px",
               }}
             >
               Cell Data
             </h3>
             <div style={{ flex: 1 }}>
+              {/* BarChart replaced with LineChart */}
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={cellData}>
+                <LineChart data={cellData}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke={colors.secondary}
@@ -258,8 +263,14 @@ const DataViewer = ({ loading, error, data }) => {
                       borderRadius: "6px",
                     }}
                   />
-                  <Bar dataKey="value" fill={colors.primary} />
-                </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke={colors.primary}
+                    strokeWidth={2}
+                    dot={{ fill: colors.primary, r: 5 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
@@ -281,13 +292,16 @@ const DataViewer = ({ loading, error, data }) => {
                 fontWeight: "600",
                 color: colors.textDark,
                 margin: "0 0 10px 0",
+                borderBottom: `1px solid ${colors.secondary}`,
+                paddingBottom: "5px",
               }}
             >
               Temperature Data
             </h3>
             <div style={{ flex: 1 }}>
+              {/* BarChart replaced with LineChart */}
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={temperatureData}>
+                <LineChart data={temperatureData}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke={colors.secondary}
@@ -301,8 +315,14 @@ const DataViewer = ({ loading, error, data }) => {
                       borderRadius: "6px",
                     }}
                   />
-                  <Bar dataKey="value" fill={colors.primary} />
-                </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke={colors.primary}
+                    strokeWidth={2}
+                    dot={{ fill: colors.primary, r: 5 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
@@ -324,27 +344,22 @@ const DataViewer = ({ loading, error, data }) => {
                 fontWeight: "600",
                 color: colors.textDark,
                 margin: "0 0 10px 0",
+                borderBottom: `1px solid ${colors.secondary}`,
+                paddingBottom: "5px",
               }}
             >
               SOC Data
             </h3>
             <div style={{ flex: 1 }}>
+              {/* PieChart replaced with LineChart */}
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={socData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={60}
-                    fill={colors.primary}
-                    label
-                  >
-                    {socData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={colors.primary} />
-                    ))}
-                  </Pie>
+                <LineChart data={socData}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={colors.secondary}
+                  />
+                  <XAxis dataKey="name" stroke={colors.textLight} />
+                  <YAxis stroke={colors.textLight} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: colors.background,
@@ -352,7 +367,14 @@ const DataViewer = ({ loading, error, data }) => {
                       borderRadius: "6px",
                     }}
                   />
-                </PieChart>
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke={colors.primary}
+                    strokeWidth={2}
+                    dot={{ fill: colors.primary, r: 5 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
@@ -469,7 +491,19 @@ const DataViewer = ({ loading, error, data }) => {
               border: `1px solid ${colors.secondary}`,
             }}
           >
-            <ResponsiveContainer width="100%" height="100%">
+            <h3
+              style={{
+                fontSize: "1rem",
+                fontWeight: "600",
+                color: colors.textDark,
+                margin: "0 0 10px 0",
+                borderBottom: `1px solid ${colors.secondary}`,
+                paddingBottom: "5px",
+              }}
+            >
+              {selectedNode} - {selectedParameter} Data
+            </h3>
+            <ResponsiveContainer width="100%" height="90%">
               <LineChart data={graphData}>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -485,13 +519,22 @@ const DataViewer = ({ loading, error, data }) => {
                   }}
                 />
                 {selectedParameter === "Temperature"
-                  ? Object.keys(nodeData.temperature).map((sensor) => (
+                  ? Object.keys(nodeData.temperature).map((sensor, index) => (
                       <Line
                         key={sensor}
                         type="monotone"
                         dataKey={sensor}
-                        stroke={colors.primary}
+                        stroke={
+                          index === 0
+                            ? colors.primary
+                            : index === 1
+                            ? colors.accentBlue
+                            : index === 2
+                            ? colors.accentGreen
+                            : colors.highlight
+                        }
                         strokeWidth={2}
+                        dot={false}
                       />
                     ))
                   : Array.from({ length: 14 }).map((_, index) => (
@@ -499,8 +542,17 @@ const DataViewer = ({ loading, error, data }) => {
                         key={`Cell ${index + 1}`}
                         type="monotone"
                         dataKey={`Cell ${index + 1}`}
-                        stroke={colors.primary}
+                        stroke={
+                          index % 4 === 0
+                            ? colors.primary
+                            : index % 4 === 1
+                            ? colors.accentBlue
+                            : index % 4 === 2
+                            ? colors.accentGreen
+                            : colors.highlight
+                        }
                         strokeWidth={2}
+                        dot={false}
                       />
                     ))}
               </LineChart>
