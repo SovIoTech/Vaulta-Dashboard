@@ -1,18 +1,96 @@
+<<<<<<< HEAD
 const TopBanner = ({ bmsState }) => {
+=======
+import React from "react";
+import logo from "../../logo.svg";
+import { useNavigate, useLocation } from "react-router-dom";
+import DarkModeToggle from "./DarkModeToggle.js";
+import { signOut } from "aws-amplify/auth";
+
+const TopBanner = ({
+  bmsState,
+  children,
+  lastUpdate,
+  isUpdating,
+  user,
+  darkMode,
+  setDarkMode,
+}) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Format the lastUpdate timestamp
+  const formatTime = (date) => {
+    if (!date) return "N/A";
+    return date.toLocaleTimeString();
+  };
+
+  // Handle sign out
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      console.log("User signed out successfully");
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  // Menu items from sidebar - now in topbar
+  const menuItems = [
+    {
+      icon: "",
+      label: "Dashboard",
+      path: "/dashboard",
+    },
+    {
+      icon: "",
+      label: "User Management",
+      path: "/page2",
+    },
+    {
+      icon: "",
+      label: "Data Analytics",
+      path: "/page3",
+    },
+    {
+      icon: "",
+      label: "ML Dashboard",
+      path: "/ml-dashboard",
+    },
+    {
+      icon: "",
+      label: "System Settings",
+      path: "/page4",
+    },
+    {
+      icon: "",
+      label: "Energy Monitor",
+      path: "/page5",
+    },
+  ];
+
+  // Check if a menu item is active based on current location path
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
+
+>>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
   return (
     <div
       style={{
         display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
+        flexDirection: "column",
         backgroundColor: "white",
-        padding: "16px 20px",
-        borderRadius: "15px", // Rounded corners for OneUI
+        borderRadius: "15px",
         boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-        marginBottom: "20px",
+        marginBottom: "10px",
         border: "1px solid #e6e6e6",
+        padding: "0",
+        overflow: "hidden",
       }}
     >
+<<<<<<< HEAD
       <h1
         style={{
           fontSize: "1.5rem",
@@ -34,6 +112,177 @@ const TopBanner = ({ bmsState }) => {
         <p>Device ID: {bmsState.DeviceId?.N || "N/A"}</p>
         <p>Serial Number: {bmsState.SerialNumber?.N || "N/A"}</p>
         <p>Tag ID: {bmsState.TagID?.S || "N/A"}</p>
+=======
+      {/* Top Section: Logo, Title, and User Controls */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "10px 20px",
+          borderBottom: "1px solid #e6e6e6",
+        }}
+      >
+        {/* Logo Square - now larger */}
+        <div
+          style={{
+            height: "80px",
+            width: "80px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "#f5f5f9",
+            borderRadius: "8px",
+            marginRight: "20px",
+          }}
+        >
+          <img
+            src={logo}
+            alt="Vaulta Logo"
+            style={{
+              height: "80%",
+              width: "80%",
+              objectFit: "contain",
+            }}
+          />
+        </div>
+
+        {/* Title - moved to top */}
+        <div
+          style={{
+            flex: 1,
+          }}
+        >
+          <h1
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: "600",
+              color: "#1259c3",
+              margin: 0,
+            }}
+          >
+            Battery Management Dashboard
+          </h1>
+          <p
+            style={{
+              margin: "5px 0 0 0",
+              fontSize: "0.9rem",
+              color: "#666",
+            }}
+          >
+            Device: {bmsState?.DeviceId?.N || "N/A"} • TagID:{" "}
+            {bmsState?.TagID?.S || "N/A"}
+          </p>
+        </div>
+
+        {/* User Controls */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "15px",
+          }}
+        >
+          {/* Wider Sign Out Button with light grey shade */}
+          <button
+            onClick={handleSignOut}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "10px 20px", // Increased padding for wider button
+              backgroundColor: "#f5f5f5", // Light grey background
+              color: "#333",
+              border: "1px solid #e0e0e0", // Slightly darker border
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "0.9rem",
+              transition: "all 0.2s ease",
+              minWidth: "120px", // Minimum width to ensure consistency
+              fontWeight: "500",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+              ":hover": {
+                backgroundColor: "#e0e0e0", // Slightly darker on hover
+              },
+            }}
+          >
+            <span style={{ marginRight: "8px" }}>
+              {/* Sign out icon can be added here */}⎋
+            </span>
+            Sign Out
+          </button>
+
+          {setDarkMode && (
+            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+          )}
+
+          {/* User info display (removed dropdown) */}
+          <div
+            style={{
+              padding: "8px 12px",
+              backgroundColor: "rgba(18, 89, 195, 0.1)",
+              borderRadius: "20px",
+              color: "#1259c3",
+              fontSize: "0.9rem",
+              fontWeight: "500",
+            }}
+          >
+            {user?.username || "User"}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Section: Navigation Menu and Tab Controls */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          padding: "10px 20px",
+        }}
+      >
+        {/* Left: Navigation Menu - now horizontal */}
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+          }}
+        >
+          {menuItems.map((item, index) => (
+            <button
+              key={index}
+              onClick={() => navigate(item.path)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "8px 12px",
+                backgroundColor: isActive(item.path) ? "#4CAF50" : "#fff",
+                color: isActive(item.path) ? "#fff" : "#333",
+                border: "1px solid #e6e6e6",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontSize: "0.9rem",
+                transition: "background-color 0.2s",
+              }}
+            >
+              <span style={{ marginRight: "8px", fontSize: "1rem" }}>
+                {item.icon}
+              </span>
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Right: Tab Controls */}
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+          }}
+        >
+          {children}
+        </div>
+>>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
       </div>
     </div>
   );

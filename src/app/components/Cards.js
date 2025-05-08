@@ -5,34 +5,83 @@ const CardItem = ({ label, value, icon, color }) => (
     style={{
       display: "flex",
       alignItems: "center",
+<<<<<<< HEAD
       border: "1px solid #e6e6e6",
       borderRadius: "15px", // Rounded corners for OneUI
       padding: "15px",
       margin: "10px 0",
       backgroundColor: "#ffffff",
       boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+=======
+      border: "1px solid #e8e8e8",
+      borderRadius: "12px",
+      padding: "20px",
+      margin: "5px",
+      backgroundColor: "#ffffff",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+      flex: "1 1 calc(50% - 10px)",
+      minWidth: "140px",
+      transition: "box-shadow 0.2s ease",
+      height: "90px",
+>>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
     }}
   >
     {icon && (
       <div
         style={{
+<<<<<<< HEAD
           marginRight: "15px",
           color: color || "#1259c3", // Default to OneUI blue
           fontSize: "24px",
+=======
+          marginRight: "18px",
+          color: color,
+          fontSize: "28px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "44px",
+          height: "44px",
+          borderRadius: "12px",
+          backgroundColor: `${color}15`, // 10% opacity of the color
+>>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
         }}
       >
         {icon}
       </div>
     )}
     <div>
+<<<<<<< HEAD
       <div style={{ color: "#757575", fontSize: "14px" }}>{label}</div>
       <div style={{ fontWeight: "bold", fontSize: "16px", color: "#000000" }}>
+=======
+      <div
+        style={{
+          color: "#666666",
+          fontSize: "14px",
+          marginBottom: "6px",
+          fontWeight: "600",
+          letterSpacing: "0.3px",
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontWeight: "700",
+          fontSize: "22px",
+          color: "#333333",
+          letterSpacing: "0.5px",
+        }}
+      >
+>>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
         {value}
       </div>
     </div>
   </div>
 );
 
+<<<<<<< HEAD
 const Cards = ({ bmsState, roundValue }) => {
   const cardSections = [
     {
@@ -85,6 +134,58 @@ const Cards = ({ bmsState, roundValue }) => {
           color: "#4CAF50", // Green
         },
       ],
+=======
+const Cards = ({ bmsState, roundValue, colors = {} }) => {
+  // Use provided colors or fallback to default
+  const cardColors = {
+    primary: colors.primary || "#2a5bd7",
+    secondary: colors.secondary || "#a0a0a0",
+    accentGreen: colors.accentGreen || "#3a9b40",
+    accentRed: colors.accentRed || "#e53935",
+    highlight: colors.highlight || "#ffb300",
+  };
+
+  // Organize all card items into a single array to use with flex layout
+  const cardItems = [
+    // State of Charge Items
+    {
+      label: "Capacity (Ah)",
+      value: roundValue(bmsState.SOCAh?.N || 0),
+      icon: "",
+      color: cardColors.primary,
+    },
+    {
+      label: "Battery Level",
+      value: `${roundValue(bmsState.SOCPercent?.N || 0)}%`,
+      icon: "",
+      color: cardColors.primary,
+    },
+    // Voltage Readings
+    {
+      label: "Load Voltage",
+      value: `${roundValue(bmsState.TotalLoadVoltage?.N || 0)} V`,
+      icon: "",
+      color: cardColors.primary,
+    },
+    {
+      label: "Battery Voltage",
+      value: `${roundValue(bmsState.TotalBattVoltage?.N || 0)} V`,
+      icon: "",
+      color: cardColors.accentGreen,
+    },
+    // Current & Environmental Impact
+    {
+      label: "Total Current",
+      value: `${roundValue(bmsState.TotalCurrent?.N || 0)} A`,
+      icon: "",
+      color: cardColors.highlight,
+    },
+    {
+      label: "Carbon Offset",
+      value: `${roundValue(bmsState.Carbon_Offset_kg?.N || 0)} kg`,
+      icon: "",
+      color: cardColors.accentGreen,
+>>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
     },
   ];
 

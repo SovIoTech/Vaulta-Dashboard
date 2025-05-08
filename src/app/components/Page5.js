@@ -9,7 +9,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import Sidebar from "./Sidebar.js";
+import TopBanner from "./TopBanner.js"; // Import TopBanner instead of Sidebar
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "./LoadingSpinner.js";
@@ -25,9 +25,9 @@ ChartJS.register(
 );
 
 const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("keyInsights");
   const [loading, setLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(false); // For dark mode toggle
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,6 +74,66 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
       (a, b) => new Date(a[0]) - new Date(b[0])
     );
   };
+
+  // Tab Navigation Component
+  const TabControls = () => (
+    <div style={{ display: "flex", gap: "10px" }}>
+      <button
+        onClick={() => setActiveSection("keyInsights")}
+        style={{
+          margin: "0 5px",
+          padding: "8px 16px",
+          backgroundColor:
+            activeSection === "keyInsights" ? "#4CAF50" : "#ffffff", // Green for active tab
+          color: activeSection === "keyInsights" ? "#fff" : "#333333",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          fontWeight: "600",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          fontSize: "0.85rem",
+        }}
+      >
+        Dashboard
+      </button>
+      <button
+        onClick={() => setActiveSection("hourlyAverages")}
+        style={{
+          margin: "0 5px",
+          padding: "8px 16px",
+          backgroundColor:
+            activeSection === "hourlyAverages" ? "#4CAF50" : "#ffffff", // Green for active tab
+          color: activeSection === "hourlyAverages" ? "#fff" : "#333333",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          fontWeight: "600",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          fontSize: "0.85rem",
+        }}
+      >
+        Hourly Trends
+      </button>
+      <button
+        onClick={() => setActiveSection("dailySummary")}
+        style={{
+          margin: "0 5px",
+          padding: "8px 16px",
+          backgroundColor:
+            activeSection === "dailySummary" ? "#4CAF50" : "#ffffff", // Green for active tab
+          color: activeSection === "dailySummary" ? "#fff" : "#333333",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          fontWeight: "600",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          fontSize: "0.85rem",
+        }}
+      >
+        Daily Summary
+      </button>
+    </div>
+  );
 
   // Card component
   const CardItem = ({ label, value, icon, color }) => (
@@ -566,22 +626,35 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
     <div
       style={{
         display: "flex",
+        flexDirection: "column",
         minHeight: "100vh",
         backgroundColor: "#f2f2f2", // OneUI light background
+        padding: "10px",
       }}
     >
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        signOut={signOut}
-        navigate={navigate}
-      />
+      {loading ? (
+        <LoadingScreen />
+      ) : (
+        <>
+          {/* TopBanner replacing Sidebar */}
+          <TopBanner
+            user={{ username: "Energy Analyst" }}
+            bmsState={bmsData?.lastMinuteData[0] || {}}
+            darkMode={darkMode}
+            setDarkMode={setDarkMode}
+            lastUpdate={new Date()}
+            isUpdating={false}
+          >
+            <TabControls />
+          </TopBanner>
 
-      <div style={{ flex: 1, padding: "20px", maxWidth: "calc(100% - 80px)" }}>
-        {loading ? (
-          <LoadingScreen />
-        ) : (
-          <>
+          <div
+            style={{
+              flex: 1,
+              backgroundColor: "#f2f2f2", // OneUI light background
+              padding: "0 10px",
+            }}
+          >
             <div
               style={{
                 backgroundColor: "white",
@@ -597,53 +670,28 @@ const Page5 = ({ signOut, bmsData, lambdaResponse }) => {
                   fontWeight: "600",
                   color: "#1259c3", // OneUI blue
                   marginBottom: "20px",
+                  borderBottom: "1px solid #e0e0e0",
+                  paddingBottom: "10px",
                 }}
               >
                 Energy Consumption Monitor
               </h1>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  marginBottom: "20px",
-                  justifyContent: "center",
-                  flexWrap: "wrap", // Add wrap for mobile responsiveness
-                }}
-              >
-                {["keyInsights", "hourlyAverages", "dailySummary"].map(
-                  (section) => (
-                    <button
-                      key={section}
-                      onClick={() => setActiveSection(section)}
-                      style={{
-                        padding: "10px 20px",
-                        backgroundColor:
-                          activeSection === section ? "#1259c3" : "#ffffff",
-                        color: activeSection === section ? "white" : "#000000",
-                        border: "none",
-                        borderRadius: "25px", // Rounded corners for OneUI
-                        cursor: "pointer",
-                        fontSize: "14px",
-                        fontWeight: "600",
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                      }}
-                    >
-                      {section === "keyInsights" && "Dashboard"}
-                      {section === "hourlyAverages" && "Hourly Trends"}
-                      {section === "dailySummary" && "Daily Summary"}
-                    </button>
-                  )
-                )}
-              </div>
-
               {activeSection === "keyInsights" && <KeyInsightsCard />}
               {activeSection === "hourlyAverages" && <HourlyAveragesChart />}
               {activeSection === "dailySummary" && <DailySummaryTable />}
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
+
+      {/* Add spinner animation */}
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };

@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "./Sidebar.js";
+import TopBanner from "./TopBanner.js";
 import { listUsers, updateUserRole } from "./cognito-users.js"; // Import listUsers and updateUserRole
 import LoadingSpinner from "./LoadingSpinner.js";
 
 const Page2 = ({ signOut }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [users, setUsers] = useState([]); // State to store the list of users
   const [loading, setLoading] = useState(true); // State to track loading state
+  const [darkMode, setDarkMode] = useState(false); // For dark mode toggle
   const navigate = useNavigate();
+
+  // Placeholder bmsState for TopBanner
+  const [bmsState, setBmsState] = useState({
+    DeviceId: { N: "ADMIN-DEVICE" },
+    SerialNumber: { N: "12345678" },
+    TagID: { S: "BAT-ADMIN" },
+  });
 
   // Fetch users on component mount
   useEffect(() => {
@@ -55,6 +62,9 @@ const Page2 = ({ signOut }) => {
     }
   };
 
+  // Empty component for tab controls (needed for TopBanner)
+  const TabControls = () => <div></div>;
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -63,24 +73,30 @@ const Page2 = ({ signOut }) => {
     <div
       style={{
         display: "flex",
+        flexDirection: "column",
         minHeight: "100vh",
         backgroundColor: "#f2f2f2", // OneUI light background
         fontFamily:
           "SamsungOne, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+        padding: "10px",
       }}
     >
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        signOut={signOut}
-        navigate={navigate}
-      />
+      {/* TopBanner replacing Sidebar */}
+      <TopBanner
+        user={{ username: "Admin" }}
+        bmsState={bmsState}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        lastUpdate={new Date()}
+        isUpdating={false}
+      >
+        <TabControls />
+      </TopBanner>
+
       <div
         style={{
           flex: 1,
-          padding: "20px",
           backgroundColor: "#f2f2f2", // OneUI light background
-          maxWidth: "calc(100% - 80px)",
         }}
       >
         <div
@@ -98,6 +114,8 @@ const Page2 = ({ signOut }) => {
               fontWeight: "600",
               color: "#1259c3", // OneUI blue
               marginBottom: "20px",
+              borderBottom: "1px solid #e0e0e0",
+              paddingBottom: "10px",
             }}
           >
             User Management

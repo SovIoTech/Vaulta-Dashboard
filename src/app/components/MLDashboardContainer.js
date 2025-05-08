@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "./Sidebar.js";
+import TopBanner from "./TopBanner.js"; // Import TopBanner instead of Sidebar
 import LoadingSpinner from "./LoadingSpinner.js";
 import MLTaskSelection from "./MLTaskSelection.js";
 import MLVisualizationContainer from "./MLVisualizationContainer.js";
 import { ProgressBar } from "./MLProgressComponents.js";
 
 const MLDashboardContainer = ({ signOut, bmsData }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mlData, setMlData] = useState(null);
   const [rawData, setRawData] = useState({}); // Cache for raw data by tagId and timeRange
@@ -21,9 +20,17 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
     batteryHealth: "Not Started",
     anomalyDetection: "Not Started",
     energyOptimization: "Not Started",
-    predictiveMaintenance: "Not Started"
+    predictiveMaintenance: "Not Started",
   });
+  const [darkMode, setDarkMode] = useState(false); // For dark mode toggle
   const navigate = useNavigate();
+
+  // Placeholder bmsState for TopBanner
+  const [bmsState, setBmsState] = useState({
+    DeviceId: { N: "ML-DEVICE" },
+    SerialNumber: { N: "12345678" },
+    TagID: { S: "BAT-ML" },
+  });
 
   // Time range options for data collection
   const timeRanges = [
@@ -38,11 +45,28 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
 
   // List of TagIDs (battery IDs)
   const baseIds = [
-    "0x100", "0x140", "0x180", "0x1C0", "0x200", 
-    "0x240", "0x280", "0x2C0", "0x400", "0x440",
-    "0x480", "0x4C0", "0x500", "0x540", "0x580",
-    "0x5C0", "0x600", "0x640", "0x680", "0x6C0",
-    "0x740", "0x780",
+    "0x100",
+    "0x140",
+    "0x180",
+    "0x1C0",
+    "0x200",
+    "0x240",
+    "0x280",
+    "0x2C0",
+    "0x400",
+    "0x440",
+    "0x480",
+    "0x4C0",
+    "0x500",
+    "0x540",
+    "0x580",
+    "0x5C0",
+    "0x600",
+    "0x640",
+    "0x680",
+    "0x6C0",
+    "0x740",
+    "0x780",
   ];
 
   // Load initial data
@@ -50,57 +74,57 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
     const timer = setTimeout(() => {
       setLoading(false);
     }, 3000);
-    
+
     if (bmsData) {
       clearTimeout(timer);
       setLoading(false);
     }
-    
+
     return () => clearTimeout(timer);
   }, [bmsData]);
 
   // Progress callback function
   const handleProgressUpdate = (taskType, progressData) => {
     console.log(`Progress update for ${taskType}:`, progressData);
-    
+
     // Update progress info state
-    setProgressInfo(prev => ({
+    setProgressInfo((prev) => ({
       ...prev,
-      [taskType]: progressData
+      [taskType]: progressData,
     }));
-    
+
     // Update collection status based on progress stage
     if (progressData.status === "complete") {
-      setDataCollectionStatus(prev => ({
+      setDataCollectionStatus((prev) => ({
         ...prev,
-        [taskType]: "Completed"
+        [taskType]: "Completed",
       }));
     } else if (progressData.status === "error") {
-      setDataCollectionStatus(prev => ({
+      setDataCollectionStatus((prev) => ({
         ...prev,
-        [taskType]: "Failed"
+        [taskType]: "Failed",
       }));
     } else {
-      setDataCollectionStatus(prev => ({
+      setDataCollectionStatus((prev) => ({
         ...prev,
-        [taskType]: "In Progress"
+        [taskType]: "In Progress",
       }));
     }
   };
-  
+
   // Function to calculate progress percentage for display
   const getProgressPercentage = (taskType) => {
     const progress = progressInfo[taskType];
     if (!progress) return 0;
-    
+
     // For completed tasks
     if (progress.status === "complete") return 100;
-    
+
     // For tasks with known percentage
     if (progress.progress?.completedPercentage) {
       return progress.progress.completedPercentage;
     }
-    
+
     // For tasks in progress without percentage
     if (progress.status === "in_progress") {
       // If we have page info, use that for visual feedback
@@ -111,7 +135,7 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
       }
       return 50; // Default to 50% if no other info
     }
-    
+
     return 0;
   };
 
@@ -133,67 +157,93 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
     }
   };
 
+  // Empty component for tab controls (needed for TopBanner)
+  const TabControls = () => <div></div>;
+
   if (loading && !bmsData) {
     return <LoadingSpinner />;
   }
 
   return (
-    <div style={{
-      display: "flex",
-      minHeight: "100vh",
-      backgroundColor: "#f2f2f2",
-      fontFamily: "SamsungOne, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-    }}>
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        signOut={signOut}
-        navigate={navigate}
-      />
-      <div style={{
-        flex: 1,
-        padding: "20px",
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
         backgroundColor: "#f2f2f2",
-        maxWidth: "calc(100% - 80px)",
-      }}>
-        <div style={{
-          backgroundColor: "white",
-          padding: "20px",
-          borderRadius: "15px",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-          marginBottom: "20px",
-        }}>
-          <h1 style={{
-            fontSize: "1.5rem",
-            fontWeight: "600",
-            color: "#1259c3",
+        fontFamily:
+          "SamsungOne, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+        padding: "10px",
+      }}
+    >
+      {/* TopBanner replacing Sidebar */}
+      <TopBanner
+        user={{ username: "ML Analyst" }}
+        bmsState={bmsState}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        lastUpdate={new Date()}
+        isUpdating={false}
+      >
+        <TabControls />
+      </TopBanner>
+
+      <div
+        style={{
+          flex: 1,
+          backgroundColor: "#f2f2f2",
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "white",
+            padding: "20px",
+            borderRadius: "15px",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
             marginBottom: "20px",
-          }}>
+          }}
+        >
+          <h1
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: "600",
+              color: "#1259c3",
+              marginBottom: "20px",
+              borderBottom: "1px solid #e0e0e0",
+              paddingBottom: "10px",
+            }}
+          >
             Machine Learning Data Collection
           </h1>
 
           {/* Data Collection Controls */}
-          <div style={{
-            display: "flex",
-            gap: "20px",
-            marginBottom: "20px",
-            flexWrap: "wrap",
-          }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "20px",
+              marginBottom: "20px",
+              flexWrap: "wrap",
+            }}
+          >
             {/* Device Selection */}
-            <div style={{
-              flex: "1 1 200px",
-              backgroundColor: "#f9f9f9",
-              padding: "15px",
-              borderRadius: "15px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-            }}>
-              <label style={{
-                fontSize: "14px",
-                color: "#757575",
-                marginBottom: "8px",
-                display: "block",
-                fontWeight: "500",
-              }}>
+            <div
+              style={{
+                flex: "1 1 200px",
+                backgroundColor: "#f9f9f9",
+                padding: "15px",
+                borderRadius: "15px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "14px",
+                  color: "#757575",
+                  marginBottom: "8px",
+                  display: "block",
+                  fontWeight: "500",
+                }}
+              >
                 Battery ID:
               </label>
               <select
@@ -211,26 +261,32 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
                 }}
               >
                 {baseIds.map((id) => (
-                  <option key={id} value={id}>{id}</option>
+                  <option key={id} value={id}>
+                    {id}
+                  </option>
                 ))}
               </select>
             </div>
 
             {/* Time Range Selection */}
-            <div style={{
-              flex: "1 1 200px",
-              backgroundColor: "#f9f9f9",
-              padding: "15px",
-              borderRadius: "15px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-            }}>
-              <label style={{
-                fontSize: "14px",
-                color: "#757575",
-                marginBottom: "8px",
-                display: "block",
-                fontWeight: "500",
-              }}>
+            <div
+              style={{
+                flex: "1 1 200px",
+                backgroundColor: "#f9f9f9",
+                padding: "15px",
+                borderRadius: "15px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "14px",
+                  color: "#757575",
+                  marginBottom: "8px",
+                  display: "block",
+                  fontWeight: "500",
+                }}
+              >
                 Data Time Range:
               </label>
               <select
@@ -254,22 +310,26 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
                 ))}
               </select>
             </div>
-            
+
             {/* Chunk Count Selection */}
-            <div style={{
-              flex: "1 1 200px",
-              backgroundColor: "#f9f9f9",
-              padding: "15px",
-              borderRadius: "15px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-            }}>
-              <label style={{
-                fontSize: "14px",
-                color: "#757575",
-                marginBottom: "8px",
-                display: "block",
-                fontWeight: "500",
-              }}>
+            <div
+              style={{
+                flex: "1 1 200px",
+                backgroundColor: "#f9f9f9",
+                padding: "15px",
+                borderRadius: "15px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "14px",
+                  color: "#757575",
+                  marginBottom: "8px",
+                  display: "block",
+                  fontWeight: "500",
+                }}
+              >
                 Parallel Chunks:
               </label>
               <select
@@ -288,16 +348,18 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
               >
                 {chunkOptions.map((count) => (
                   <option key={count} value={count}>
-                    {count} {count === 1 ? 'Chunk' : 'Chunks'}
+                    {count} {count === 1 ? "Chunk" : "Chunks"}
                   </option>
                 ))}
               </select>
-              <div style={{ 
-                fontSize: "12px", 
-                color: "#666", 
-                marginTop: "8px",
-                fontStyle: "italic"
-              }}>
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "#666",
+                  marginTop: "8px",
+                  fontStyle: "italic",
+                }}
+              >
                 More chunks = faster processing but higher server load
               </div>
             </div>
@@ -305,26 +367,29 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
 
           {/* Data Cache Status */}
           {hasCachedData() && (
-            <div style={{
-              backgroundColor: "#E8F5E9",
-              color: "#2E7D32",
-              padding: "10px 15px",
-              borderRadius: "8px",
-              marginBottom: "20px",
-              display: "flex",
-              alignItems: "center",
-              gap: "10px"
-            }}>
+            <div
+              style={{
+                backgroundColor: "#E8F5E9",
+                color: "#2E7D32",
+                padding: "10px 15px",
+                borderRadius: "8px",
+                marginBottom: "20px",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
               <div style={{ fontWeight: "500" }}>✓</div>
               <div>
-                Data for {selectedTagId} with {selectedTimeRange} time range is already cached. 
-                Tasks will use the cached data instead of fetching again.
+                Data for {selectedTagId} with {selectedTimeRange} time range is
+                already cached. Tasks will use the cached data instead of
+                fetching again.
               </div>
             </div>
           )}
 
           {/* Task Selection Grid */}
-          <MLTaskSelection 
+          <MLTaskSelection
             dataCollectionStatus={dataCollectionStatus}
             progressInfo={progressInfo}
             getProgressPercentage={getProgressPercentage}
@@ -341,8 +406,8 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
           />
 
           {/* Visualization Container - Show when data is collected */}
-          {mlData && Object.keys(mlData).some(key => mlData[key]) && (
-            <MLVisualizationContainer 
+          {mlData && Object.keys(mlData).some((key) => mlData[key]) && (
+            <MLVisualizationContainer
               mlData={mlData}
               activeTask={activeTask}
               setActiveTask={setActiveTask}
