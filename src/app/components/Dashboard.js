@@ -1,113 +1,42 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PropTypes from "prop-types";
 import Sidebar from "./Sidebar.js";
 import TopBanner from "./TopBanner.js";
 import Cards from "./Cards.js";
-import Gauges from "./Gauges.js";
 import NodeTables from "./NodeTables.js";
+import Gauges from "./Gauges.js"
 import LoadingSpinner from "./LoadingSpinner.js";
 import WeatherCard from "./WeatherCard.js";
 import BatteryMetricsCarousel from "./BatteryMetricsCarousel.js";
-import { useResizeObserver } from "@react-aria/utils";
-import AWS from "aws-sdk";
-import { fetchAuthSession } from "aws-amplify/auth";
-import awsconfig from "../../aws-exports.js";
-import { getLastMinuteData } from "../../queries.js";
+import { useResizeObserver } from '@react-aria/utils';
 
 const Dashboard = ({ bmsData, signOut }) => {
   const [bmsState, setBmsState] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("cards");
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [lastUpdateTime, setLastUpdateTime] = useState(new Date());
 
-  // Refs for tracking components and intervals
+  // Create refs for the main containers
   const batteryStatusRef = useRef(null);
   const batteryPerformanceRef = useRef(null);
   const weatherRef = useRef(null);
   const systemMetricsRef = useRef(null);
-  const refreshIntervalRef = useRef(null);
 
-  // Function to fetch the latest data
-  const fetchLatestData = useCallback(async () => {
-    try {
-      setIsUpdating(true);
-
-      // Get the AWS credentials
-      const session = await fetchAuthSession();
-      const credentials = session.credentials;
-
-      // Initialize DynamoDB client
-      const dynamoDB = new AWS.DynamoDB({
-        apiVersion: "2012-08-10",
-        region: awsconfig.region,
-        credentials,
-      });
-
-      // Fetch the latest data
-      const latestData = await getLastMinuteData(
-        dynamoDB,
-        "CAN_BMS_Data",
-        "BAT-0x440"
-      );
-
-      if (latestData && latestData.length > 0) {
-        setBmsState(latestData[0]);
-        setLastUpdateTime(new Date());
-      } else {
-        console.warn("No new data available");
-      }
-    } catch (error) {
-      console.error("Error fetching latest data:", error);
-      toast.error("Failed to update latest data.", {
-        autoClose: 3000,
-        toastId: "update-error",
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  }, []);
-
-  // Set initial data from props
   useEffect(() => {
     console.log("bmsData:", bmsData);
-    if (
-      bmsData &&
-      bmsData.lastMinuteData &&
-      bmsData.lastMinuteData.length > 0
-    ) {
+    if (bmsData && bmsData.lastMinuteData && bmsData.lastMinuteData.length > 0) {
       console.log("Setting bmsState:", bmsData.lastMinuteData[0]);
       setBmsState(bmsData.lastMinuteData[0]);
-      setLastUpdateTime(new Date());
     } else {
       console.error("bmsData is not in the expected format or is empty.");
-      toast.error(
-        "Backend returned null data. Displaying placeholder values.",
-        {
-          autoClose: 5000,
-          toastId: "null-data-warning",
-        }
-      );
+      toast.error("Backend returned null data. Displaying placeholder values.", {
+        autoClose: 5000,
+        toastId: "null-data-warning",
+      });
       setBmsState({});
     }
   }, [bmsData]);
-
-  // Set up auto-refresh interval
-  useEffect(() => {
-    // Start the interval
-    refreshIntervalRef.current = setInterval(() => {
-      fetchLatestData();
-    }, 20000); // 20 seconds
-
-    // Cleanup function to clear the interval when component unmounts
-    return () => {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-      }
-    };
-  }, [fetchLatestData]);
 
   const roundValue = (value) => parseFloat(value).toFixed(2);
 
@@ -118,14 +47,10 @@ const Dashboard = ({ bmsData, signOut }) => {
         balanceStatus: roundValue(bmsState?.Node00BalanceStatus?.N || "NaN"),
         totalVoltage: roundValue(bmsState?.Node00TotalVoltage?.N || "NaN"),
         cellVoltages: Array.from({ length: 14 }, (_, i) =>
-          roundValue(
-            bmsState?.[`Node00Cell${i < 10 ? `0${i}` : i}`]?.N || "NaN"
-          )
+          roundValue(bmsState?.[`Node00Cell${i < 10 ? `0${i}` : i}`]?.N || "NaN")
         ),
         temperatures: Array.from({ length: 6 }, (_, i) =>
-          roundValue(
-            bmsState?.[`Node00Temp${i < 10 ? `0${i}` : i}`]?.N || "NaN"
-          )
+          roundValue(bmsState?.[`Node00Temp${i < 10 ? `0${i}` : i}`]?.N || "NaN")
         ),
         tempCount: roundValue(bmsState?.Node00TempCount?.N || "NaN"),
       },
@@ -136,14 +61,10 @@ const Dashboard = ({ bmsData, signOut }) => {
         balanceStatus: roundValue(bmsState?.Node01BalanceStatus?.N || "NaN"),
         totalVoltage: roundValue(bmsState?.Node01TotalVoltage?.N || "NaN"),
         cellVoltages: Array.from({ length: 14 }, (_, i) =>
-          roundValue(
-            bmsState?.[`Node01Cell${i < 10 ? `0${i}` : i}`]?.N || "NaN"
-          )
+          roundValue(bmsState?.[`Node01Cell${i < 10 ? `0${i}` : i}`]?.N || "NaN")
         ),
         temperatures: Array.from({ length: 6 }, (_, i) =>
-          roundValue(
-            bmsState?.[`Node01Temp${i < 10 ? `0${i}` : i}`]?.N || "NaN"
-          )
+          roundValue(bmsState?.[`Node01Temp${i < 10 ? `0${i}` : i}`]?.N || "NaN")
         ),
         tempCount: roundValue(bmsState?.Node01TempCount?.N || "NaN"),
       },
@@ -156,15 +77,15 @@ const Dashboard = ({ bmsData, signOut }) => {
 
   // Define colors from WeatherCard for consistent styling
   const colors = {
-    primary: "#818181", // Base gray
-    secondary: "#c0c0c0", // Light gray
-    accentGreen: "#4CAF50", // Vibrant green
-    accentRed: "#F44336", // Strategic red
-    accentBlue: "#2196F3", // Complementary blue
-    background: "rgba(192, 192, 192, 0.1)",
-    textDark: "#333333",
-    textLight: "#555555",
-    highlight: "#FFC107", // Accent yellow
+    primary: '#818181',       // Base gray
+    secondary: '#c0c0c0',     // Light gray
+    accentGreen: '#4CAF50',   // Vibrant green
+    accentRed: '#F44336',     // Strategic red
+    accentBlue: '#2196F3',    // Complementary blue
+    background: 'rgba(192, 192, 192, 0.1)',
+    textDark: '#333333',
+    textLight: '#555555',
+    highlight: '#FFC107'      // Accent yellow
   };
 
   return (
@@ -195,11 +116,7 @@ const Dashboard = ({ bmsData, signOut }) => {
       >
         {/* Top Banner - Now includes tab navigation */}
         <div style={{ marginBottom: "10px" }}>
-          <TopBanner
-            bmsState={bmsState}
-            lastUpdate={lastUpdateTime}
-            isUpdating={isUpdating}
-          >
+          <TopBanner bmsState={bmsState}>
             {/* Tab Navigation inside the TopBanner */}
             <div
               style={{
@@ -212,8 +129,7 @@ const Dashboard = ({ bmsData, signOut }) => {
                 style={{
                   margin: "0 5px",
                   padding: "8px 16px",
-                  backgroundColor:
-                    activeTab === "cards" ? colors.accentGreen : "#ffffff",
+                  backgroundColor: activeTab === "cards" ? colors.accentGreen : "#ffffff",
                   color: activeTab === "cards" ? "#fff" : colors.textDark,
                   border: "none",
                   borderRadius: "2px",
@@ -230,8 +146,7 @@ const Dashboard = ({ bmsData, signOut }) => {
                 style={{
                   margin: "0 5px",
                   padding: "8px 16px",
-                  backgroundColor:
-                    activeTab === "tables" ? colors.accentGreen : "#ffffff",
+                  backgroundColor: activeTab === "tables" ? colors.accentGreen : "#ffffff",
                   color: activeTab === "tables" ? "#fff" : colors.textDark,
                   border: "none",
                   borderRadius: "2px",
@@ -242,45 +157,6 @@ const Dashboard = ({ bmsData, signOut }) => {
                 }}
               >
                 Detailed Data
-              </button>
-              {/* Manual refresh button */}
-              <button
-                onClick={fetchLatestData}
-                disabled={isUpdating}
-                style={{
-                  margin: "0 5px",
-                  padding: "8px 16px",
-                  backgroundColor: isUpdating ? "#cccccc" : "#ffffff",
-                  color: colors.textDark,
-                  border: "none",
-                  borderRadius: "2px",
-                  cursor: isUpdating ? "not-allowed" : "pointer",
-                  fontWeight: "600",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                  fontSize: "0.85rem",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                {isUpdating ? (
-                  <>
-                    <span
-                      style={{
-                        display: "inline-block",
-                        width: "12px",
-                        height: "12px",
-                        border: "2px solid #333",
-                        borderTopColor: "transparent",
-                        borderRadius: "50%",
-                        animation: "spin 1s linear infinite",
-                        marginRight: "6px",
-                      }}
-                    ></span>
-                    Updating...
-                  </>
-                ) : (
-                  "Refresh Data"
-                )}
               </button>
             </div>
           </TopBanner>
@@ -297,7 +173,7 @@ const Dashboard = ({ bmsData, signOut }) => {
           {activeTab === "cards" ? (
             <>
               {/* Left Section - Combined Battery Status and Performance */}
-              <div
+              <div 
                 ref={batteryStatusRef}
                 style={{
                   display: "flex",
@@ -336,19 +212,19 @@ const Dashboard = ({ bmsData, signOut }) => {
                     Battery Status
                   </h2>
                   <div style={{ flex: 1, minHeight: 0 }}>
-                    <Cards
-                      bmsState={bmsState}
+                    <Cards 
+                      bmsState={bmsState} 
                       roundValue={roundValue}
                       containerRef={batteryStatusRef}
                       colors={colors}
                     />
                   </div>
                 </div>
-
+                
                 {/* Battery Performance Section */}
-                <div
+                <div 
                   ref={batteryPerformanceRef}
-                  style={{
+                  style={{ 
                     backgroundColor: "#fff",
                     borderRadius: "12px",
                     padding: "15px",
@@ -373,7 +249,7 @@ const Dashboard = ({ bmsData, signOut }) => {
                     Battery Performance
                   </h2>
                   <div style={{ flex: 1, minHeight: 0 }}>
-                    <Gauges
+                    <Gauges 
                       bmsState={bmsState}
                       roundValue={roundValue}
                       containerRef={batteryPerformanceRef}
@@ -384,33 +260,32 @@ const Dashboard = ({ bmsData, signOut }) => {
               </div>
 
               {/* Right Section - Weather and System Metrics */}
-              <div
-                style={{
-                  flex: 1,
+              <div style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                minWidth: 0,
+                gap: "10px",
+              }}>
+                <div style={{
                   display: "flex",
-                  flexDirection: "column",
-                  minWidth: 0,
+                  flex: 1,
                   gap: "10px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    flex: 1,
-                    gap: "10px",
-                    minHeight: 0,
-                  }}
-                >
+                  minHeight: 0,
+                }}>
                   {/* Weather Card */}
-                  <div
+                  <div 
                     ref={weatherRef}
-                    style={{
+                    style={{ 
                       flex: 0.35,
                       minWidth: 0,
                       minHeight: 0,
                     }}
                   >
-                    <WeatherCard city="Brisbane" containerRef={weatherRef} />
+                    <WeatherCard 
+                      city="Brisbane" 
+                      containerRef={weatherRef}
+                    />
                   </div>
 
                   {/* System Metrics */}
@@ -441,8 +316,8 @@ const Dashboard = ({ bmsData, signOut }) => {
                       System Metrics
                     </h2>
                     <div style={{ flex: 1, minHeight: 0 }}>
-                      <BatteryMetricsCarousel
-                        bmsState={bmsState}
+                      <BatteryMetricsCarousel 
+                        bmsState={bmsState} 
                         roundValue={roundValue}
                         containerRef={systemMetricsRef}
                         colors={colors}
@@ -482,14 +357,6 @@ const Dashboard = ({ bmsData, signOut }) => {
           )}
         </div>
       </div>
-
-      {/* Add a keyframe animation for the spinner */}
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 };

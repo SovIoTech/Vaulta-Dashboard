@@ -7,6 +7,7 @@
   "dependencies": {
     "@aws-amplify/ui-react": "^6.9.1",
     "@aws-sdk/client-cognito-identity-provider": "^3.760.0",
+    "@aws-sdk/client-dynamodb": "^3.804.0",
     "@aws-sdk/client-lambda": "^3.772.0",
     "@coreui/icons": "^3.0.1",
     "@coreui/icons-react": "^2.3.0",
