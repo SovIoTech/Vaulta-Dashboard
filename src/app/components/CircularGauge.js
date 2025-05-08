@@ -22,8 +22,8 @@ const CircularGauge = ({
   return (
     <div
       style={{
-        width: "300px", // Fixed width for consistency
-        height: "510px", // Fixed height for consistency
+        width: "275px", // Fixed width for consistency
+        height: "400px", // Fixed height for consistency
         border: "1px solid #e6e6e6", // Light border
         borderRadius: "15px", // Rounded corners for OneUI
         padding: "20px",
@@ -38,11 +38,11 @@ const CircularGauge = ({
       {/* Title */}
       <h3
         style={{
-          fontSize: "2rem",
+          fontSize: "1.25rem",
           fontWeight: "600",
           color: "#1259c3", // OneUI blue
           textAlign: "center",
-          marginBottom: "1px",
+          marginBottom: "10px",
         }}
       >
         {title}
@@ -52,7 +52,7 @@ const CircularGauge = ({
       {description && (
         <p
           style={{
-            fontSize: "1.1rem",
+            fontSize: "0.9rem",
             color: "#757575", // Gray text
             textAlign: "center",
             marginBottom: "15px",
@@ -65,7 +65,7 @@ const CircularGauge = ({
       {/* Min Value */}
       <div
         style={{
-          fontSize: "1.1rem",
+          fontSize: "0.9rem",
           color: "#757575", // Gray text
           textAlign: "center",
         }}
@@ -77,8 +77,8 @@ const CircularGauge = ({
       {/* Circular Progress Bar */}
       <div
         style={{
-          width: "200px", // Fixed width for the progress bar container
-          height: "200px", // Fixed height for the progress bar container
+          width: "150px", // Fixed width for the progress bar container
+          height: "150px", // Fixed height for the progress bar container
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -101,7 +101,7 @@ const CircularGauge = ({
       <div style={{ textAlign: "center", marginBottom: "10px" }}>
         <div
           style={{
-            fontSize: "1.1rem",
+            fontSize: "1rem",
             fontWeight: "600",
             color: "#1259c3", // OneUI blue
           }}
@@ -110,7 +110,7 @@ const CircularGauge = ({
         </div>
         <div
           style={{
-            fontSize: "1.1rem",
+            fontSize: "0.9rem",
             color: percentageChange > 0 ? "#4CAF50" : "#F44336", // Green or Red
             fontWeight: "500",
           }}

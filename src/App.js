@@ -26,14 +26,8 @@ awsconfig.region = awsconfig.aws_project_region;
 // Configure Amplify with the updated `awsconfig`
 Amplify.configure(awsconfig);
 
-// Battery IDs to monitor - using the optimized structure format
-const BATTERY_IDS = ["BAT-0x440"];
-
-// Auto-refresh interval in milliseconds (30 seconds)
-const REFRESH_INTERVAL = 30000;
-
 // Create a new component to handle the routes and animations
-const AnimatedRoutes = ({ bmsData, lambdaResponse, user, loading }) => {
+const AnimatedRoutes = ({ bmsData, lambdaResponse, user }) => {
   const location = useLocation(); // useLocation is now inside the Router context
 
   const pageVariants = {
@@ -103,7 +97,7 @@ const AnimatedRoutes = ({ bmsData, lambdaResponse, user, loading }) => {
                 animate="animate"
                 exit="exit"
               >
-                <Dashboard bmsData={bmsData} loading={loading} />
+                <Dashboard bmsData={bmsData} />
               </motion.div>
             </ProtectedRoute>
           }
@@ -177,6 +171,20 @@ const AnimatedRoutes = ({ bmsData, lambdaResponse, user, loading }) => {
           }
         />
 
+        {/* Fallback route for unmatched paths */}
+        <Route
+          path="*"
+          element={
+            <motion.div
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              <Navigate to="/" replace />
+            </motion.div>
+          }
+        />
         {/* ML Dashboard route */}
         <Route
           path="/ml-dashboard"
@@ -193,88 +201,36 @@ const AnimatedRoutes = ({ bmsData, lambdaResponse, user, loading }) => {
             </ProtectedRoute>
           }
         />
-
-        {/* Fallback route for unmatched paths */}
-        <Route
-          path="*"
-          element={
-            <motion.div
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-            >
-              <Navigate to="/" replace />
-            </motion.div>
-          }
-        />
       </Routes>
     </AnimatePresence>
   );
 };
 
 function App() {
-  // Use the enhanced DynamoDB hook with auto-refresh and specific battery IDs
-  const { 
-    data, 
-    loading, 
-    errorMessage: dynamoError, 
-    refreshData 
-  } = useDynamoDB(BATTERY_IDS, REFRESH_INTERVAL);
-  
-  // Extract primary battery data for backward compatibility
-  const [bmsData, setBmsData] = useState(null);
-  
-  // Update bmsData when data changes
-  useEffect(() => {
-    if (data && BATTERY_IDS.length > 0) {
-      // Format data for backward compatibility
-      // Use the first battery ID as the primary one
-      const primaryBatteryId = BATTERY_IDS[0];
-      const primaryBatteryData = data[primaryBatteryId];
-      
-      if (primaryBatteryData) {
-        setBmsData({
-          // For backward compatibility with existing components
-          lastMinuteData: primaryBatteryData.lastMinute || [],
-          lastHourData: primaryBatteryData.lastHour || [],
-          lastDayData: primaryBatteryData.lastDay || [],
-          latestReading: primaryBatteryData.latest || null,
-          // Also include the full data structure for components that can use it
-          allBatteries: data
-        });
-      }
-    } else {
-      setBmsData(null);
-    }
-  }, [data]);
-  
+  const { data: bmsData, error: dynamoError } = useDynamoDB(); // Fetch BMS data
   const [lambdaResponse, setLambdaResponse] = useState(null); // State to store Lambda response
-  const [lambdaLoading, setLambdaLoading] = useState(false); // Loading state for Lambda
+  const [loading, setLoading] = useState(false); // Loading state for Lambda
   const [lambdaError, setLambdaError] = useState(null); // Error state for Lambda
 
   // Fetch Lambda data as soon as the user logs in
   useEffect(() => {
     const fetchLambdaData = async () => {
-      setLambdaLoading(true);
+      setLoading(true);
       setLambdaError(null);
 
       try {
-        // Extract the ID without the "BAT-" prefix
-        const tagId = BATTERY_IDS[0].replace('BAT-', '');
-        
-        // Invoke the Lambda function with the first battery ID
-        const response = await invokeLambdaFunction(tagId);
+        // Invoke the Lambda function with a default or selected TagID
+        const response = await invokeLambdaFunction("0x440"); // Default TagID
         setLambdaResponse(response); // Save the Lambda response
       } catch (error) {
         console.error("Error fetching Lambda data:", error);
         setLambdaError("Failed to fetch Lambda data. Please try again.");
       } finally {
-        setLambdaLoading(false);
+        setLoading(false);
       }
     };
 
-    // Fetch Lambda data only if the user is logged in (bmsData is available)
+    // Fetch Lambda data only if the user is logged in
     if (bmsData) {
       fetchLambdaData();
     }
@@ -288,20 +244,6 @@ function App() {
     }
   }, [dynamoError]);
 
-  // Implement manual data refresh on focus
-  useEffect(() => {
-    const handleFocus = () => {
-      console.log("Window focused - refreshing data");
-      refreshData(); // Refresh DynamoDB data
-    };
-
-    window.addEventListener('focus', handleFocus);
-    
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [refreshData]);
-
   return (
     <BrowserRouter>
       <AuthWrapper>
@@ -310,7 +252,6 @@ function App() {
             bmsData={bmsData}
             lambdaResponse={lambdaResponse}
             user={user}
-            loading={loading || lambdaLoading}
           />
         )}
       </AuthWrapper>
