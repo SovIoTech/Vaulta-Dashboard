@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-const TopBanner = ({ bmsState }) => {
-=======
 import React from "react";
 import logo from "../../logo.svg";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -75,7 +72,6 @@ const TopBanner = ({
     return location.pathname === path;
   };
 
->>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
   return (
     <div
       style={{
@@ -90,29 +86,6 @@ const TopBanner = ({
         overflow: "hidden",
       }}
     >
-<<<<<<< HEAD
-      <h1
-        style={{
-          fontSize: "1.5rem",
-          fontWeight: "600",
-          color: "#1259c3", // OneUI primary blue
-          fontFamily:
-            "SamsungOne, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-        }}
-      >
-        Battery Management Dashboard
-      </h1>
-      <div
-        style={{
-          textAlign: "right",
-          color: "#000000", // OneUI text color
-          fontSize: "0.9rem",
-        }}
-      >
-        <p>Device ID: {bmsState.DeviceId?.N || "N/A"}</p>
-        <p>Serial Number: {bmsState.SerialNumber?.N || "N/A"}</p>
-        <p>Tag ID: {bmsState.TagID?.S || "N/A"}</p>
-=======
       {/* Top Section: Logo, Title, and User Controls */}
       <div
         style={{
@@ -282,7 +255,6 @@ const TopBanner = ({
         >
           {children}
         </div>
->>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
       </div>
     </div>
   );

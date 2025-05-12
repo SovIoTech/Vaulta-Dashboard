@@ -1,7 +1,14 @@
 import AWS from "aws-sdk";
 import { fetchAuthSession } from "aws-amplify/auth";
 import awsconfig from "../../aws-exports.js";
-import { getDataByTagAndTimestamp } from "../../queries.js";
+import {
+  getLastMinuteData,
+  getLastHourData,
+  getLastDayData,
+  getLast7DaysData,
+  getLastMonthData,
+  getTimeRangeData,
+} from "../../queries.js";
 
 // Function to calculate start and end timestamps based on the selected time range
 const calculateTimeRange = (timeRange) => {
@@ -34,23 +41,44 @@ const roundToTwoDecimals = (value) => {
   return value;
 };
 
+// Select the appropriate query function based on time range
+const getQueryFunction = (timeRange) => {
+  switch (timeRange) {
+    case "1min":
+    case "5min":
+      return getLastMinuteData;
+    case "1hour":
+    case "8hours":
+      return getLastHourData;
+    case "1day":
+      return getLastDayData;
+    case "7days":
+      return getLast7DaysData;
+    case "1month":
+      return getLastMonthData;
+    default:
+      return getTimeRangeData;
+  }
+};
+
 // Function to fetch and structure data
 export const fetchData = async (selectedTagId, selectedTimeRange) => {
   try {
     const session = await fetchAuthSession();
     const credentials = session.credentials;
 
-    const dynamoDB = new AWS.DynamoDB({
+    const dynamoDB = new AWS.DynamoDB.DocumentClient({
       apiVersion: "2012-10-17",
       region: awsconfig.region,
       credentials,
     });
 
     const { startTime, endTime } = calculateTimeRange(selectedTimeRange);
+    const queryFunction = getQueryFunction(selectedTimeRange);
 
-    const fetchedData = await getDataByTagAndTimestamp(
+    // Fetch data using the optimized query
+    const fetchedData = await queryFunction(
       dynamoDB,
-      "CAN_BMS_Data",
       `BAT-${selectedTagId}`,
       startTime,
       endTime
@@ -59,19 +87,19 @@ export const fetchData = async (selectedTagId, selectedTimeRange) => {
     // Log the raw fetched data
     console.log("Raw Fetched Data:", fetchedData);
 
-    // Initialize structured data for Node0, Node1, Pack, Cell, Temperature, and SOC
+    // Initialize structured data
     const structuredData = {
       Node0: {
         voltage: {
-          cellVoltages: Array.from({ length: 14 }, () => []), // Array of arrays for each cell voltage
+          cellVoltages: Array.from({ length: 14 }, () => []),
         },
-        temperature: {}, // Object to hold temperature arrays for each sensor
+        temperature: {},
       },
       Node1: {
         voltage: {
-          cellVoltages: Array.from({ length: 14 }, () => []), // Array of arrays for each cell voltage
+          cellVoltages: Array.from({ length: 14 }, () => []),
         },
-        temperature: {}, // Object to hold temperature arrays for each sensor
+        temperature: {},
       },
       Pack: {
         numParallelNodes: null,
@@ -114,32 +142,27 @@ export const fetchData = async (selectedTagId, selectedTimeRange) => {
       },
     };
 
-    // Iterate through all fetched data objects
+    // Process each item in the fetched data
     fetchedData.forEach((item) => {
-      // Log the current item to debug
-      // console.log("Processing item:", item);
-
       // Process Node0 data
       for (let i = 0; i < 14; i++) {
         const cellKey = `Node00Cell${i < 10 ? `0${i}` : i}`;
-        if (item[cellKey]?.N) {
+        if (item[cellKey]) {
           structuredData.Node0.voltage.cellVoltages[i].push(
-            roundToTwoDecimals(parseFloat(item[cellKey].N)) // Round to 2 decimal places
+            roundToTwoDecimals(parseFloat(item[cellKey])) // Fixed: single closing parenthesis
           );
         }
       }
 
-      // Process Node0 temperature keys (e.g., Node00Temp00, Node00Temp01, etc.)
+      // Process Node0 temperature
       for (let i = 0; i < 6; i++) {
         const tempKey = `Node00Temp${i < 10 ? `0${i}` : i}`;
-        if (item[tempKey]?.N) {
-          // Initialize the array for this temperature sensor if it doesn't exist
+        if (item[tempKey]) {
           if (!structuredData.Node0.temperature[tempKey]) {
             structuredData.Node0.temperature[tempKey] = [];
           }
-          // Append the temperature value to the respective sensor array
           structuredData.Node0.temperature[tempKey].push(
-            roundToTwoDecimals(parseFloat(item[tempKey].N)) // Round to 2 decimal places
+            roundToTwoDecimals(parseFloat(item[tempKey])) // Fixed
           );
         }
       }
@@ -147,114 +170,118 @@ export const fetchData = async (selectedTagId, selectedTimeRange) => {
       // Process Node1 data
       for (let i = 0; i < 14; i++) {
         const cellKey = `Node01Cell${i < 10 ? `0${i}` : i}`;
-        if (item[cellKey]?.N) {
+        if (item[cellKey]) {
           structuredData.Node1.voltage.cellVoltages[i].push(
-            roundToTwoDecimals(parseFloat(item[cellKey].N)) // Round to 2 decimal places
+            roundToTwoDecimals(parseFloat(item[cellKey]))
           );
         }
       }
 
-      // Process Node1 temperature keys (e.g., Node01Temp00, Node01Temp01, etc.)
+      // Process Node1 temperature
       for (let i = 0; i < 6; i++) {
         const tempKey = `Node01Temp${i < 10 ? `0${i}` : i}`;
-        if (item[tempKey]?.N) {
-          // Initialize the array for this temperature sensor if it doesn't exist
+        if (item[tempKey]) {
           if (!structuredData.Node1.temperature[tempKey]) {
             structuredData.Node1.temperature[tempKey] = [];
           }
-          // Append the temperature value to the respective sensor array
           structuredData.Node1.temperature[tempKey].push(
-            roundToTwoDecimals(parseFloat(item[tempKey].N)) // Round to 2 decimal places
+            roundToTwoDecimals(parseFloat(item[tempKey]))
           );
         }
       }
 
-      // Process Pack-Level Data
-      structuredData.Pack = {
-        numParallelNodes: item.PackNumParallelNodes?.N || null,
-        numNodes: item.PackNumNodes?.N || null,
-        thresholdOverCurrent: item.PackThresholdOverCurrent?.N
-          ? roundToTwoDecimals(parseFloat(item.PackThresholdOverCurrent.N))
-          : null,
-        modes: item.PackModes?.N || null,
-        totalBattVoltage: item.TotalBattVoltage?.N
-          ? roundToTwoDecimals(parseFloat(item.TotalBattVoltage.N))
-          : null,
-        totalLoadVoltage: item.TotalLoadVoltage?.N
-          ? roundToTwoDecimals(parseFloat(item.TotalLoadVoltage.N))
-          : null,
-        totalCurrent: item.TotalCurrent?.N
-          ? roundToTwoDecimals(parseFloat(item.TotalCurrent.N))
-          : null,
-        serialNumber: item.SerialNumber?.N || null,
-        state: item.State?.S || null,
-        events: item.Events?.N || null,
-      };
+      // Process Pack-Level Data (only set once per item)
+      if (!structuredData.Pack.numParallelNodes) {
+        structuredData.Pack = {
+          numParallelNodes: item.PackNumParallelNodes || null,
+          numNodes: item.PackNumNodes || null,
+          thresholdOverCurrent: item.PackThresholdOverCurrent
+            ? roundToTwoDecimals(parseFloat(item.PackThresholdOverCurrent))
+            : null,
+          modes: item.PackModes || null,
+          totalBattVoltage: item.TotalBattVoltage
+            ? roundToTwoDecimals(parseFloat(item.TotalBattVoltage))
+            : null,
+          totalLoadVoltage: item.TotalLoadVoltage
+            ? roundToTwoDecimals(parseFloat(item.TotalLoadVoltage))
+            : null,
+          totalCurrent: item.TotalCurrent
+            ? roundToTwoDecimals(parseFloat(item.TotalCurrent))
+            : null,
+          serialNumber: item.SerialNumber || null,
+          state: item.State || null,
+          events: item.Events || null,
+        };
+      }
 
-      // Process Cell-Level Data
-      structuredData.Cell = {
-        maxCellVoltage: item.MaximumCellVoltage?.N
-          ? roundToTwoDecimals(parseFloat(item.MaximumCellVoltage.N))
-          : null,
-        minCellVoltage: item.MinimumCellVoltage?.N
-          ? roundToTwoDecimals(parseFloat(item.MinimumCellVoltage.N))
-          : null,
-        maxCellVoltageCellNo: item.MaximumCellVoltageCellNo?.N || null,
-        minCellVoltageCellNo: item.MinimumCellVoltageCellNo?.N || null,
-        maxCellVoltageNode: item.MaximumCellVoltageNode?.N || null,
-        minCellVoltageNode: item.MinimumCellVoltageNode?.N || null,
-        thresholdOverVoltage: item.CellThresholdOverVoltage?.N
-          ? roundToTwoDecimals(parseFloat(item.CellThresholdOverVoltage.N))
-          : null,
-        thresholdUnderVoltage: item.CellThresholdUnderVoltage?.N
-          ? roundToTwoDecimals(parseFloat(item.CellThresholdUnderVoltage.N))
-          : null,
-        criticalOverVoltThreshold: item.CellCriticalOverVoltThreshold?.N
-          ? roundToTwoDecimals(parseFloat(item.CellCriticalOverVoltThreshold.N))
-          : null,
-        criticalUnderVoltThreshold: item.CellCriticalUnderVoltThreshold?.N
-          ? roundToTwoDecimals(
-              parseFloat(item.CellCriticalUnderVoltThreshold.N)
-            )
-          : null,
-        balanceThresholdVoltage: item.CellBalanceThresholdVoltage?.N
-          ? roundToTwoDecimals(parseFloat(item.CellBalanceThresholdVoltage.N))
-          : null,
-      };
+      // Process Cell-Level Data (only set once per item)
+      if (!structuredData.Cell.maxCellVoltage) {
+        structuredData.Cell = {
+          maxCellVoltage: item.MaximumCellVoltage
+            ? roundToTwoDecimals(parseFloat(item.MaximumCellVoltage))
+            : null,
+          minCellVoltage: item.MinimumCellVoltage
+            ? roundToTwoDecimals(parseFloat(item.MinimumCellVoltage))
+            : null,
+          maxCellVoltageCellNo: item.MaximumCellVoltageCellNo || null,
+          minCellVoltageCellNo: item.MinimumCellVoltageCellNo || null,
+          maxCellVoltageNode: item.MaximumCellVoltageNode || null,
+          minCellVoltageNode: item.MinimumCellVoltageNode || null,
+          thresholdOverVoltage: item.CellThresholdOverVoltage
+            ? roundToTwoDecimals(parseFloat(item.CellThresholdOverVoltage))
+            : null,
+          thresholdUnderVoltage: item.CellThresholdUnderVoltage
+            ? roundToTwoDecimals(parseFloat(item.CellThresholdUnderVoltage))
+            : null,
+          criticalOverVoltThreshold: item.CellCriticalOverVoltThreshold
+            ? roundToTwoDecimals(parseFloat(item.CellCriticalOverVoltThreshold))
+            : null,
+          criticalUnderVoltThreshold: item.CellCriticalUnderVoltThreshold
+            ? roundToTwoDecimals(
+                parseFloat(item.CellCriticalUnderVoltThreshold)
+              )
+            : null,
+          balanceThresholdVoltage: item.CellBalanceThresholdVoltage
+            ? roundToTwoDecimals(parseFloat(item.CellBalanceThresholdVoltage))
+            : null,
+        };
+      }
 
-      // Process Temperature Data
-      structuredData.Temperature = {
-        maxCellTemp: item.MaxCellTemp?.N
-          ? roundToTwoDecimals(parseFloat(item.MaxCellTemp.N))
-          : null,
-        minCellTemp: item.MinCellTemp?.N
-          ? roundToTwoDecimals(parseFloat(item.MinCellTemp.N))
-          : null,
-        maxCellTempNode: item.MaxCellTempNode?.N || null,
-        minCellTempNode: item.MinCellTempNode?.N || null,
-        thresholdOverTemp: item.TempThresholdOverTemp?.N
-          ? roundToTwoDecimals(parseFloat(item.TempThresholdOverTemp.N))
-          : null,
-        thresholdUnderTemp: item.TempThresholdUnderTemp?.N
-          ? roundToTwoDecimals(parseFloat(item.TempThresholdUnderTemp.N))
-          : null,
-      };
+      // Process Temperature Data (only set once per item)
+      if (!structuredData.Temperature.maxCellTemp) {
+        structuredData.Temperature = {
+          maxCellTemp: item.MaxCellTemp
+            ? roundToTwoDecimals(parseFloat(item.MaxCellTemp))
+            : null,
+          minCellTemp: item.MinCellTemp
+            ? roundToTwoDecimals(parseFloat(item.MinCellTemp))
+            : null,
+          maxCellTempNode: item.MaxCellTempNode || null,
+          minCellTempNode: item.MinCellTempNode || null,
+          thresholdOverTemp: item.TempThresholdOverTemp
+            ? roundToTwoDecimals(parseFloat(item.TempThresholdOverTemp))
+            : null,
+          thresholdUnderTemp: item.TempThresholdUnderTemp
+            ? roundToTwoDecimals(parseFloat(item.TempThresholdUnderTemp))
+            : null,
+        };
+      }
 
-      // Process SOC Data
-      structuredData.SOC = {
-        socPercent: item.SOCPercent?.N
-          ? roundToTwoDecimals(parseFloat(item.SOCPercent.N))
-          : null,
-        socAh: item.SOCAh?.N
-          ? roundToTwoDecimals(parseFloat(item.SOCAh.N))
-          : null,
-        balanceSOCPercent: item.BalanceSOCPercent?.N
-          ? roundToTwoDecimals(parseFloat(item.BalanceSOCPercent.N))
-          : null,
-        balanceSOCAh: item.BalanceSOCAh?.N
-          ? roundToTwoDecimals(parseFloat(item.BalanceSOCAh.N))
-          : null,
-      };
+      // Process SOC Data (only set once per item)
+      if (!structuredData.SOC.socPercent) {
+        structuredData.SOC = {
+          socPercent: item.SOCPercent
+            ? roundToTwoDecimals(parseFloat(item.SOCPercent))
+            : null,
+          socAh: item.SOCAh ? roundToTwoDecimals(parseFloat(item.SOCAh)) : null,
+          balanceSOCPercent: item.BalanceSOCPercent
+            ? roundToTwoDecimals(parseFloat(item.BalanceSOCPercent))
+            : null,
+          balanceSOCAh: item.BalanceSOCAh
+            ? roundToTwoDecimals(parseFloat(item.BalanceSOCAh))
+            : null,
+        };
+      }
     });
 
     // Log the structured data

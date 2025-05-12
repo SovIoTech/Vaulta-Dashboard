@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-import React from "react";
-import CircularGauge from "./CircularGauge.js";
-=======
 import React, { useState, useEffect } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
@@ -68,9 +64,6 @@ const Gauges = ({ bmsState, roundValue }) => {
   const calculateColor = (value, max) => {
     return "#808080"; // Using primary gray for all other states
   };
->>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
-
-const Gauges = ({ bmsState, roundValue }) => {
   const gauges = [
     {
       title: "Max Cell Temp",
@@ -78,13 +71,9 @@ const Gauges = ({ bmsState, roundValue }) => {
       info: `Node: ${bmsState.MaxCellTempNode?.N || "N/A"}`,
       min: 0,
       max: 100,
-<<<<<<< HEAD
-      unit: "°C", // Add unit for temperature
-=======
       unit: "°C",
       status: (percentage) =>
         percentage >= 90 ? "Critical" : percentage >= 60 ? "Warning" : "Normal",
->>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
     },
     {
       title: "Max Cell Voltage",
@@ -94,13 +83,9 @@ const Gauges = ({ bmsState, roundValue }) => {
       }`,
       min: 0,
       max: 5,
-<<<<<<< HEAD
-      unit: "V", // Add unit for voltage
-=======
       unit: "V",
       status: (percentage) =>
         percentage >= 90 ? "High" : percentage >= 60 ? "Elevated" : "Optimal",
->>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
     },
     {
       title: "Min Cell Temp",
@@ -108,13 +93,9 @@ const Gauges = ({ bmsState, roundValue }) => {
       info: `Node: ${bmsState.MinCellTempNode?.N || "N/A"}`,
       min: 0,
       max: 100,
-<<<<<<< HEAD
-      unit: "°C", // Add unit for temperature
-=======
       unit: "°C",
       status: (percentage) =>
         percentage >= 90 ? "Critical" : percentage >= 60 ? "Warning" : "Stable",
->>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
     },
     {
       title: "Min Cell Voltage",
@@ -124,19 +105,6 @@ const Gauges = ({ bmsState, roundValue }) => {
       }`,
       min: 0,
       max: 5,
-<<<<<<< HEAD
-      unit: "V", // Add unit for voltage
-    },
-  ];
-
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", // Flexible grid layout
-        gap: "20px",
-        width: "100%", // Occupy full width
-=======
       unit: "V",
       status: (percentage) =>
         percentage >= 90 ? "Low" : percentage >= 60 ? "Fair" : "Good",
@@ -412,22 +380,8 @@ const Gauges = ({ bmsState, roundValue }) => {
         overflow: "hidden",
         padding: "10px",
         border: `1px solid ${colors.secondary}`,
->>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
       }}
     >
-<<<<<<< HEAD
-      {gauges.map((gauge, index) => (
-        <CircularGauge
-          key={index}
-          title={gauge.title}
-          description={gauge.info}
-          value={gauge.value} // Pass the actual value
-          min={gauge.min}
-          max={gauge.max}
-          unit={gauge.unit} // Pass the unit
-        />
-      ))}
-=======
       <AnimatePresence mode="wait">
         <motion.div
           key={currentPage}
@@ -466,9 +420,7 @@ const Gauges = ({ bmsState, roundValue }) => {
           />
         ))}
       </div>
->>>>>>> 3d3dcbab18667f2bf77a3c89df0d53ce8325d3d4
     </div>
   );
 };
-
 export default Gauges;
