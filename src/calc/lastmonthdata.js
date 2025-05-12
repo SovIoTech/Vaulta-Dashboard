@@ -3,7 +3,10 @@ import { fetchAuthSession } from "aws-amplify/auth";
 import awsconfig from "../aws-exports.js";
 
 // Function to invoke the Lambda function
-export const invokeLambdaFunction = async (selectedTagId) => {
+export const invokeLambdaFunction = async (
+  selectedTagId,
+  timeRange = "7days"
+) => {
   try {
     // Get the AWS credentials from Amplify Auth
     const session = await fetchAuthSession();
@@ -22,7 +25,10 @@ export const invokeLambdaFunction = async (selectedTagId) => {
     // Payload to pass to the Lambda function
     const payload = {
       baseId: selectedTagId, // Pass the selectedTagId as the baseId
+      timeRange: timeRange, // Add time range parameter
     };
+
+    console.log("Invoking Lambda function with payload:", payload);
 
     // Invoke the Lambda function
     const response = await lambda
@@ -36,6 +42,15 @@ export const invokeLambdaFunction = async (selectedTagId) => {
     // Parse the response from the Lambda function
     const result = JSON.parse(response.Payload);
     console.log("Lambda function response:", result);
+
+    // Check if the response has the expected format
+    if (
+      !result.hourlyAverages ||
+      !result.hourlyPower ||
+      !result.dailyPowerSummary
+    ) {
+      console.warn("Lambda response missing expected fields:", result);
+    }
 
     return result;
   } catch (error) {
