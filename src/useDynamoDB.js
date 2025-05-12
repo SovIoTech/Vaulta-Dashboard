@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { fetchAuthSession } from "aws-amplify/auth";
 import AWS from "aws-sdk";
 import awsconfig from "./aws-exports.js";
-import { getLastMinuteData } from "./queries.js";
+import { getLatestReading, getLastMinuteData } from "./queries.js";
 
 const useDynamoDB = () => {
   const [tableMetadata] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [userDetails, setUserDetails] = useState(null);
   const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchCredentials = async () => {
@@ -16,19 +17,21 @@ const useDynamoDB = () => {
         const session = await fetchAuthSession();
         const credentials = session.credentials;
 
-        const dynamoDB = new AWS.DynamoDB({
+        // Use DocumentClient for easier data handling
+        const docClient = new AWS.DynamoDB.DocumentClient({
           apiVersion: "2012-08-10",
           region: awsconfig.region,
           credentials,
         });
 
         fetchUserDetails(session);
-        fetchTableMetadata(dynamoDB);
-        await fetchData(dynamoDB, "BAT-0x440");
+        await fetchData(docClient, "BAT-0x440");
       } catch (error) {
         console.error("Error fetching AWS credentials:", error);
         setErrorMessage("Failed to fetch AWS credentials.");
-        setData(null); // Set data to null if there's an error
+        setData(null);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -54,33 +57,36 @@ const useDynamoDB = () => {
     }
   };
 
-  const fetchTableMetadata = async (dynamoDB) => {
+  const fetchData = async (docClient, batteryId) => {
     try {
-      // const params = { TableName: "CAN_BMS_Data" };
-      // const data = await dynamoDB.describeTable(params).promise();
-      // setTableMetadata(data.Table);
-    } catch (error) {
-      console.error("Error fetching table metadata:", error);
-      setErrorMessage("Failed to fetch table metadata.");
-    }
-  };
+      // Get the latest minute of data for the battery
+      const lastMinuteData = await getLastMinuteData(docClient, batteryId);
 
-  const fetchData = async (dynamoDB, tagID) => {
-    try {
-      const lastMinuteData = await getLastMinuteData(
-        dynamoDB,
-        "CAN_BMS_Data",
-        tagID
-      );
-      setData({ lastMinuteData });
+      // If we have data, use it; otherwise fetch just the latest reading
+      if (lastMinuteData && lastMinuteData.length > 0) {
+        console.log("Got last minute data:", lastMinuteData);
+        setData({ lastMinuteData });
+      } else {
+        // Fallback to just getting the latest reading
+        console.log("No minute data, fetching latest reading...");
+        const latestReading = await getLatestReading(docClient, batteryId);
+
+        if (latestReading) {
+          console.log("Got latest reading:", latestReading);
+          setData({ lastMinuteData: [latestReading] });
+        } else {
+          console.warn("No data available for battery:", batteryId);
+          setData({ lastMinuteData: [] });
+        }
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
       setErrorMessage("Failed to fetch data.");
-      setData(null); // Set data to null if there's an error
+      setData(null);
     }
   };
 
-  return { tableMetadata, errorMessage, userDetails, data };
+  return { tableMetadata, errorMessage, userDetails, data, isLoading };
 };
 
 export default useDynamoDB;

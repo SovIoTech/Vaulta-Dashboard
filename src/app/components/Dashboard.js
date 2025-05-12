@@ -12,7 +12,7 @@ import BatteryMetricsCarousel from "./BatteryMetricsCarousel.js";
 import AWS from "aws-sdk";
 import { fetchAuthSession } from "aws-amplify/auth";
 import awsconfig from "../../aws-exports.js";
-import { getLastMinuteData } from "../../queries.js";
+import { getLatestReading } from "../../queries.js";
 import { useNavigate } from "react-router-dom";
 
 const Dashboard = ({ bmsData, signOut }) => {
@@ -21,6 +21,7 @@ const Dashboard = ({ bmsData, signOut }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastUpdateTime, setLastUpdateTime] = useState(new Date());
   const [darkMode, setDarkMode] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const navigate = useNavigate();
 
   // Refs for tracking components
@@ -33,42 +34,60 @@ const Dashboard = ({ bmsData, signOut }) => {
   // Function to fetch the latest data
   const fetchLatestData = useCallback(async () => {
     try {
-      setIsUpdating(true);
+      // Don't show updating state during initial load
+      if (!isInitialLoad) {
+        setIsUpdating(true);
+      }
 
       // Get the AWS credentials
       const session = await fetchAuthSession();
       const credentials = session.credentials;
 
-      // Initialize DynamoDB client
-      const dynamoDB = new AWS.DynamoDB({
+      // Use DocumentClient for easier data handling
+      const docClient = new AWS.DynamoDB.DocumentClient({
         apiVersion: "2012-08-10",
         region: awsconfig.region,
         credentials,
       });
 
-      // Fetch the latest data
-      const latestData = await getLastMinuteData(
-        dynamoDB,
-        "CAN_BMS_Data",
-        "BAT-0x440"
-      );
+      // Fetch only the latest reading for the battery
+      const latestReading = await getLatestReading(docClient, "BAT-0x440");
 
-      if (latestData && latestData.length > 0) {
-        setBmsState(latestData[0]);
+      if (latestReading) {
+        console.log("Latest reading received:", latestReading);
+        setBmsState(latestReading);
         setLastUpdateTime(new Date());
       } else {
         console.warn("No new data available");
+
+        // If no data on initial load, show error
+        if (isInitialLoad) {
+          toast.error(
+            "No battery data available. Please check the connection.",
+            {
+              autoClose: 5000,
+              toastId: "no-data-error",
+            }
+          );
+        }
       }
     } catch (error) {
       console.error("Error fetching latest data:", error);
-      toast.error("Failed to update latest data.", {
-        autoClose: 3000,
-        toastId: "update-error",
-      });
+
+      // Only show toast if not initial load
+      if (!isInitialLoad) {
+        toast.error("Failed to update latest data.", {
+          autoClose: 3000,
+          toastId: "update-error",
+        });
+      }
     } finally {
       setIsUpdating(false);
+      if (isInitialLoad) {
+        setIsInitialLoad(false);
+      }
     }
-  }, []);
+  }, [isInitialLoad]);
 
   // Set initial data from props
   useEffect(() => {
@@ -78,28 +97,28 @@ const Dashboard = ({ bmsData, signOut }) => {
       bmsData.lastMinuteData &&
       bmsData.lastMinuteData.length > 0
     ) {
-      console.log("Setting bmsState:", bmsData.lastMinuteData[0]);
+      console.log(
+        "Setting initial bmsState from props:",
+        bmsData.lastMinuteData[0]
+      );
       setBmsState(bmsData.lastMinuteData[0]);
       setLastUpdateTime(new Date());
+      setIsInitialLoad(false);
     } else {
-      console.error("bmsData is not in the expected format or is empty.");
-      toast.error(
-        "Backend returned null data. Displaying placeholder values.",
-        {
-          autoClose: 5000,
-          toastId: "null-data-warning",
-        }
-      );
-      setBmsState({});
+      // If no initial data, fetch it
+      console.log("No initial data in props, fetching...");
+      fetchLatestData();
     }
-  }, [bmsData]);
+  }, [bmsData, fetchLatestData]);
 
   // Set up auto-refresh interval
   useEffect(() => {
-    // Start the interval
-    refreshIntervalRef.current = setInterval(() => {
-      fetchLatestData();
-    }, 20000); // 20 seconds
+    // Only start interval after initial load
+    if (!isInitialLoad) {
+      refreshIntervalRef.current = setInterval(() => {
+        fetchLatestData();
+      }, 20000); // 20 seconds
+    }
 
     // Cleanup function to clear the interval when component unmounts
     return () => {
@@ -107,50 +126,65 @@ const Dashboard = ({ bmsData, signOut }) => {
         clearInterval(refreshIntervalRef.current);
       }
     };
-  }, [fetchLatestData]);
+  }, [fetchLatestData, isInitialLoad]);
 
-  const roundValue = (value) => parseFloat(value).toFixed(2);
+  const roundValue = (value) => {
+    if (value === null || value === undefined || value === "NaN") {
+      return "0.00";
+    }
+    return parseFloat(value).toFixed(2);
+  };
+
+  // Helper function to safely access data values
+  const getDataValue = (field) => {
+    if (!bmsState || !field) return "0.00";
+
+    // If field has the .N property (DynamoDB format)
+    if (bmsState[field]?.N !== undefined) {
+      return bmsState[field].N;
+    }
+
+    // If field is directly a number or string
+    if (bmsState[field] !== undefined) {
+      return bmsState[field];
+    }
+
+    return "0.00";
+  };
 
   const nodeData = [
     {
       node: "Node 00",
       data: {
-        balanceStatus: roundValue(bmsState?.Node00BalanceStatus?.N || "NaN"),
-        totalVoltage: roundValue(bmsState?.Node00TotalVoltage?.N || "NaN"),
+        balanceStatus: roundValue(getDataValue("Node00BalanceStatus")),
+        totalVoltage: roundValue(getDataValue("Node00TotalVoltage")),
         cellVoltages: Array.from({ length: 14 }, (_, i) =>
-          roundValue(
-            bmsState?.[`Node00Cell${i < 10 ? `0${i}` : i}`]?.N || "NaN"
-          )
+          roundValue(getDataValue(`Node00Cell${i < 10 ? `0${i}` : i}`))
         ),
         temperatures: Array.from({ length: 6 }, (_, i) =>
-          roundValue(
-            bmsState?.[`Node00Temp${i < 10 ? `0${i}` : i}`]?.N || "NaN"
-          )
+          roundValue(getDataValue(`Node00Temp${i < 10 ? `0${i}` : i}`))
         ),
-        tempCount: roundValue(bmsState?.Node00TempCount?.N || "NaN"),
+        tempCount: roundValue(getDataValue("Node00TempCount")),
       },
     },
     {
       node: "Node 01",
       data: {
-        balanceStatus: roundValue(bmsState?.Node01BalanceStatus?.N || "NaN"),
-        totalVoltage: roundValue(bmsState?.Node01TotalVoltage?.N || "NaN"),
+        balanceStatus: roundValue(getDataValue("Node01BalanceStatus")),
+        totalVoltage: roundValue(getDataValue("Node01TotalVoltage")),
         cellVoltages: Array.from({ length: 14 }, (_, i) =>
-          roundValue(
-            bmsState?.[`Node01Cell${i < 10 ? `0${i}` : i}`]?.N || "NaN"
-          )
+          roundValue(getDataValue(`Node01Cell${i < 10 ? `0${i}` : i}`))
         ),
         temperatures: Array.from({ length: 6 }, (_, i) =>
-          roundValue(
-            bmsState?.[`Node01Temp${i < 10 ? `0${i}` : i}`]?.N || "NaN"
-          )
+          roundValue(getDataValue(`Node01Temp${i < 10 ? `0${i}` : i}`))
         ),
-        tempCount: roundValue(bmsState?.Node01TempCount?.N || "NaN"),
+        tempCount: roundValue(getDataValue("Node01TempCount")),
       },
     },
   ];
 
-  if (!bmsState) {
+  // Show loading spinner during initial load
+  if (isInitialLoad || !bmsState) {
     return <LoadingSpinner />;
   }
 
@@ -175,7 +209,7 @@ const Dashboard = ({ bmsData, signOut }) => {
         style={{
           margin: "0 5px",
           padding: "8px 16px",
-          backgroundColor: activeTab === "cards" ? "#4CAF50" : "#ffffff", // Changed to green for active tab
+          backgroundColor: activeTab === "cards" ? "#4CAF50" : "#ffffff",
           color: activeTab === "cards" ? "#fff" : colors.textDark,
           border: "none",
           borderRadius: "5px",
@@ -192,7 +226,7 @@ const Dashboard = ({ bmsData, signOut }) => {
         style={{
           margin: "0 5px",
           padding: "8px 16px",
-          backgroundColor: activeTab === "tables" ? "#4CAF50" : "#ffffff", // Changed to green for active tab
+          backgroundColor: activeTab === "tables" ? "#4CAF50" : "#ffffff",
           color: activeTab === "tables" ? "#fff" : colors.textDark,
           border: "none",
           borderRadius: "5px",

@@ -102,6 +102,8 @@ const DataViewer = ({ loading, error, data }) => {
       });
       transformedData.push(timeData);
     });
+    console.log("Transforming Data");
+    console.log(transformedData);
     return transformedData;
   };
 
