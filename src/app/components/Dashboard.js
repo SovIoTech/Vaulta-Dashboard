@@ -14,6 +14,7 @@ import { fetchAuthSession } from "aws-amplify/auth";
 import awsconfig from "../../aws-exports.js";
 import { getLatestReading } from "../../queries.js";
 import { useNavigate } from "react-router-dom";
+import ChatBot from "./ChatBot.js";
 
 const Dashboard = ({ bmsData, signOut }) => {
   const [bmsState, setBmsState] = useState(null);
@@ -501,7 +502,8 @@ const Dashboard = ({ bmsData, signOut }) => {
           </div>
         )}
       </div>
-
+      {/* ChatBot Component */}
+      <ChatBot />
       {/* Add a keyframe animation for the spinner */}
       <style>{`
         @keyframes spin {

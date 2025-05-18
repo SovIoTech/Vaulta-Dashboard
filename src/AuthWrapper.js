@@ -2,6 +2,7 @@ import React from "react";
 import { Authenticator } from "@aws-amplify/ui-react";
 import { useNavigate } from "react-router-dom";
 
+
 const AuthWrapper = ({ children }) => {
   const navigate = useNavigate(); // Initialize the navigate function
 
