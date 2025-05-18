@@ -82,16 +82,6 @@ const Page2 = ({ signOut }) => {
       }}
     >
       {/* TopBanner replacing Sidebar */}
-      <TopBanner
-        user={{ username: "Admin" }}
-        bmsState={bmsState}
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-        lastUpdate={new Date()}
-        isUpdating={false}
-      >
-        <TabControls />
-      </TopBanner>
 
       <div
         style={{

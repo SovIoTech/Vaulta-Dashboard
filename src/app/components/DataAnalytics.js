@@ -98,16 +98,6 @@ const Page3 = ({ signOut }) => {
       }}
     >
       {/* TopBanner - You might want to style this component separately */}
-      <TopBanner
-        user={{ username: "Analyst" }}
-        bmsState={bmsState}
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-        lastUpdate={new Date()}
-        isUpdating={loading}
-      >
-        <TabControls />
-      </TopBanner>
 
       <div
         style={{

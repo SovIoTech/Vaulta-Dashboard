@@ -177,16 +177,6 @@ const MLDashboardContainer = ({ signOut, bmsData }) => {
       }}
     >
       {/* TopBanner replacing Sidebar */}
-      <TopBanner
-        user={{ username: "ML Analyst" }}
-        bmsState={bmsState}
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-        lastUpdate={new Date()}
-        isUpdating={false}
-      >
-        <TabControls />
-      </TopBanner>
 
       <div
         style={{

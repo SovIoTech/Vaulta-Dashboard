@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PropTypes from "prop-types";
-import TopBanner from "./TopBanner.js";
 import Cards from "./Cards.js";
 import Gauges from "./Gauges.js";
 import NodeTables from "./NodeTables.js";
@@ -13,16 +12,12 @@ import AWS from "aws-sdk";
 import { fetchAuthSession } from "aws-amplify/auth";
 import awsconfig from "../../aws-exports.js";
 import { getLatestReading } from "../../queries.js";
-import { useNavigate } from "react-router-dom";
 
-const Dashboard = ({ bmsData, signOut }) => {
+const Dashboard = ({ bmsData, activeSection = "system" }) => {
   const [bmsState, setBmsState] = useState(null);
-  const [activeTab, setActiveTab] = useState("cards");
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastUpdateTime, setLastUpdateTime] = useState(new Date());
-  const [darkMode, setDarkMode] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const navigate = useNavigate();
 
   // Refs for tracking components
   const batteryStatusRef = useRef(null);
@@ -201,83 +196,45 @@ const Dashboard = ({ bmsData, signOut }) => {
     highlight: "#FFC107", // Accent yellow
   };
 
-  // Tab navigation component
-  const TabNavigation = () => (
-    <div style={{ display: "flex", gap: "10px" }}>
-      <button
-        onClick={() => setActiveTab("cards")}
-        style={{
-          margin: "0 5px",
-          padding: "8px 16px",
-          backgroundColor: activeTab === "cards" ? "#4CAF50" : "#ffffff",
-          color: activeTab === "cards" ? "#fff" : colors.textDark,
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          fontWeight: "600",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-          fontSize: "0.85rem",
-        }}
-      >
-        System Overview
-      </button>
-      <button
-        onClick={() => setActiveTab("tables")}
-        style={{
-          margin: "0 5px",
-          padding: "8px 16px",
-          backgroundColor: activeTab === "tables" ? "#4CAF50" : "#ffffff",
-          color: activeTab === "tables" ? "#fff" : colors.textDark,
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          fontWeight: "600",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-          fontSize: "0.85rem",
-        }}
-      >
-        Detailed Data
-      </button>
-      {/* Manual refresh button */}
-      <button
-        onClick={fetchLatestData}
-        disabled={isUpdating}
-        style={{
-          margin: "0 5px",
-          padding: "8px 16px",
-          backgroundColor: isUpdating ? "#cccccc" : "#ffffff",
-          color: colors.textDark,
-          border: "none",
-          borderRadius: "5px",
-          cursor: isUpdating ? "not-allowed" : "pointer",
-          fontWeight: "600",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-          fontSize: "0.85rem",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
-        {isUpdating ? (
-          <>
-            <span
-              style={{
-                display: "inline-block",
-                width: "12px",
-                height: "12px",
-                border: "2px solid #333",
-                borderTopColor: "transparent",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-                marginRight: "6px",
-              }}
-            ></span>
-            Updating...
-          </>
-        ) : (
-          "Refresh Data"
-        )}
-      </button>
-    </div>
+  // Manual refresh button component
+  const RefreshButton = () => (
+    <button
+      onClick={fetchLatestData}
+      disabled={isUpdating}
+      style={{
+        padding: "8px 16px",
+        backgroundColor: isUpdating ? "#cccccc" : "#ffffff",
+        color: colors.textDark,
+        border: "none",
+        borderRadius: "5px",
+        cursor: isUpdating ? "not-allowed" : "pointer",
+        fontWeight: "600",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+        fontSize: "0.85rem",
+        display: "flex",
+        alignItems: "center",
+      }}
+    >
+      {isUpdating ? (
+        <>
+          <span
+            style={{
+              display: "inline-block",
+              width: "12px",
+              height: "12px",
+              border: "2px solid #333",
+              borderTopColor: "transparent",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              marginRight: "6px",
+            }}
+          ></span>
+          Updating...
+        </>
+      ) : (
+        "Refresh Data"
+      )}
+    </button>
   );
 
   return (
@@ -285,26 +242,13 @@ const Dashboard = ({ bmsData, signOut }) => {
       style={{
         display: "flex",
         flexDirection: "column",
-        height: "100vh",
+        height: "100%",
         overflow: "hidden",
         backgroundColor: "#f2f2f2",
         fontFamily: "Arial, sans-serif",
-        padding: "10px",
       }}
     >
       <ToastContainer />
-
-      {/* Updated Top Banner with navigation */}
-      <TopBanner
-        user={{ username: bmsData?.userDetails?.identityId || "User" }}
-        bmsState={bmsState}
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-        lastUpdate={lastUpdateTime}
-        isUpdating={isUpdating}
-      >
-        <TabNavigation />
-      </TopBanner>
 
       {/* Main Content */}
       <div
@@ -314,7 +258,7 @@ const Dashboard = ({ bmsData, signOut }) => {
           overflow: "hidden",
         }}
       >
-        {activeTab === "cards" ? (
+        {activeSection === "system" ? (
           <>
             {/* Left Section - Combined Battery Status and Performance */}
             <div
@@ -343,19 +287,34 @@ const Dashboard = ({ bmsData, signOut }) => {
                   border: `1px solid ${colors.secondary}`,
                 }}
               >
-                <h2
+                <div
                   style={{
-                    color: colors.textDark,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                     marginBottom: "15px",
-                    fontWeight: "600",
-                    fontSize: "1.2rem",
-                    borderBottom: `1px solid ${colors.secondary}`,
-                    paddingBottom: "5px",
                   }}
                 >
-                  Battery Status
-                </h2>
-                <div style={{ flex: 1, minHeight: 0 }}>
+                  <h2
+                    style={{
+                      color: colors.textDark,
+                      fontWeight: "600",
+                      fontSize: "1.2rem",
+                      margin: 0,
+                    }}
+                  >
+                    Battery Status
+                  </h2>
+                  <RefreshButton />
+                </div>
+                <div
+                  style={{
+                    flex: 1,
+                    minHeight: 0,
+                    borderTop: `1px solid ${colors.secondary}`,
+                    paddingTop: "15px",
+                  }}
+                >
                   <Cards
                     bmsState={bmsState}
                     roundValue={roundValue}
@@ -485,19 +444,35 @@ const Dashboard = ({ bmsData, signOut }) => {
               border: `1px solid ${colors.secondary}`,
             }}
           >
-            <h2
+            <div
               style={{
-                color: colors.textDark,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
                 marginBottom: "15px",
-                fontWeight: "600",
-                fontSize: "1.2rem",
-                borderBottom: `1px solid ${colors.secondary}`,
-                paddingBottom: "5px",
               }}
             >
-              Cell & Temperature Data
-            </h2>
-            <NodeTables nodeData={nodeData} colors={colors} />
+              <h2
+                style={{
+                  color: colors.textDark,
+                  fontWeight: "600",
+                  fontSize: "1.2rem",
+                  margin: 0,
+                }}
+              >
+                Cell & Temperature Data
+              </h2>
+              <RefreshButton />
+            </div>
+            <div
+              style={{
+                flex: 1,
+                borderTop: `1px solid ${colors.secondary}`,
+                paddingTop: "15px",
+              }}
+            >
+              <NodeTables nodeData={nodeData} colors={colors} />
+            </div>
           </div>
         )}
       </div>
@@ -515,7 +490,7 @@ const Dashboard = ({ bmsData, signOut }) => {
 
 Dashboard.propTypes = {
   bmsData: PropTypes.object,
-  signOut: PropTypes.func,
+  activeSection: PropTypes.string,
 };
 
 export default Dashboard;

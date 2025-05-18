@@ -571,3 +571,46 @@ export const getDataByTimestamp = async (
 ) => {
   return getTimeRangeData(docClient, tagID, timestamp, timestamp);
 };
+
+/**
+ * Get the minimal essential fields for the latest battery reading
+ * @param {Object} docClient - DynamoDB DocumentClient instance
+ * @param {String} batteryId - Battery ID (e.g., "BAT-0x440")
+ * @returns {Promise<Object>} Latest battery reading with only essential fields
+ */
+export const getLatestReadingMinimal = async (docClient, batteryId) => {
+  try {
+    const params = {
+      TableName: TABLE_NAME,
+      KeyConditionExpression: "TagID = :tid",
+      ExpressionAttributeValues: {
+        ":tid": batteryId,
+      },
+      ProjectionExpression: "TagID, #ts, Events, DeviceId",
+      ExpressionAttributeNames: {
+        "#ts": "Timestamp"  // Using alias since 'Timestamp' is a reserved word
+      },
+      Limit: 1,
+      ScanIndexForward: false, // Descending order (newest first)
+    };
+
+    const result = await docClient.query(params).promise();
+
+    if (result.Items.length > 0) {
+      const item = result.Items[0];
+      
+      // Convert to the expected format with DynamoDB attribute types
+      return {
+        TagID: item.TagID,
+        Timestamp: { N: item.Timestamp.toString() },
+        Events: { N: item.Events.toString() },
+        DeviceId: { N: item.DeviceId.toString() }
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`Error getting minimal latest reading for ${batteryId}:`, error);
+    throw error;
+  }
+};

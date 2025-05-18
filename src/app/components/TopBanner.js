@@ -1,7 +1,5 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import logo from "../../logo.svg";
-import { useNavigate, useLocation } from "react-router-dom";
-import DarkModeToggle from "./DarkModeToggle.js";
 import { signOut } from "aws-amplify/auth";
 
 const TopBanner = ({
@@ -10,17 +8,37 @@ const TopBanner = ({
   lastUpdate,
   isUpdating,
   user,
-  darkMode,
-  setDarkMode,
+  navigate,
+  timestamp, // New prop for data timestamp
 }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
-  // Format the lastUpdate timestamp
+  // Format timestamps
   const formatTime = (date) => {
     if (!date) return "N/A";
     return date.toLocaleTimeString();
   };
+
+  const formatDataTimestamp = (timestamp) => {
+    if (!timestamp) return "N/A";
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleString();
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Handle sign out
   const handleSignOut = async () => {
@@ -33,43 +51,21 @@ const TopBanner = ({
     }
   };
 
-  // Menu items from sidebar - now in topbar
+  // Menu items for main navigation
   const menuItems = [
-    {
-      icon: "",
-      label: "Dashboard",
-      path: "/dashboard",
-    },
-    {
-      icon: "",
-      label: "User Management",
-      path: "/page2",
-    },
-    {
-      icon: "",
-      label: "Data Analytics",
-      path: "/page3",
-    },
-    {
-      icon: "",
-      label: "ML Dashboard",
-      path: "/ml-dashboard",
-    },
-    {
-      icon: "",
-      label: "System Settings",
-      path: "/page4",
-    },
-    {
-      icon: "",
-      label: "Energy Monitor",
-      path: "/page5",
-    },
+    { label: "Dashboard", path: "/dashboard" },
+    { label: "User Management", path: "/user-management" },
+    { label: "Data Analytics", path: "/data-analytics" },
+    { label: "ML Dashboard", path: "/ml-dashboard" },
+    { label: "System Settings", path: "/system-settings" },
+    { label: "Energy Monitor", path: "/energy-monitor" },
+    { label: "Diagnostics", path: "/diagnostics" },
+    { label: "Warranty", path: "/warranty" },
   ];
 
-  // Check if a menu item is active based on current location path
+  // Check if a menu item is active
   const isActive = (path) => {
-    return location.pathname === path;
+    return window.location.pathname === path;
   };
 
   return (
@@ -86,7 +82,7 @@ const TopBanner = ({
         overflow: "hidden",
       }}
     >
-      {/* Top Section: Logo, Title, and User Controls */}
+      {/* Top Section */}
       <div
         style={{
           display: "flex",
@@ -96,7 +92,7 @@ const TopBanner = ({
           borderBottom: "1px solid #e6e6e6",
         }}
       >
-        {/* Logo Square - now larger */}
+        {/* Logo */}
         <div
           style={{
             height: "80px",
@@ -120,12 +116,8 @@ const TopBanner = ({
           />
         </div>
 
-        {/* Title - moved to top */}
-        <div
-          style={{
-            flex: 1,
-          }}
-        >
+        {/* Title and Device Info */}
+        <div style={{ flex: 1 }}>
           <h1
             style={{
               fontSize: "1.5rem",
@@ -144,52 +136,38 @@ const TopBanner = ({
             }}
           >
             Device: {bmsState?.DeviceId?.N || "N/A"} • TagID:{" "}
-            {bmsState?.TagID?.S || "N/A"}
+            {bmsState?.TagID || "N/A"} • Data Time:{" "}
+            {formatDataTimestamp(timestamp)} • Last Update:{" "}
+            {formatTime(lastUpdate)}
+            {isUpdating && " (Updating...)"}
           </p>
         </div>
 
         {/* User Controls */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "15px",
-          }}
-        >
-          {/* Wider Sign Out Button with light grey shade */}
+        <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
           <button
             onClick={handleSignOut}
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: "10px 20px", // Increased padding for wider button
-              backgroundColor: "#f5f5f5", // Light grey background
+              padding: "10px 20px",
+              backgroundColor: "#f5f5f5",
               color: "#333",
-              border: "1px solid #e0e0e0", // Slightly darker border
+              border: "1px solid #e0e0e0",
               borderRadius: "6px",
               cursor: "pointer",
               fontSize: "0.9rem",
               transition: "all 0.2s ease",
-              minWidth: "120px", // Minimum width to ensure consistency
+              minWidth: "120px",
               fontWeight: "500",
               boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              ":hover": {
-                backgroundColor: "#e0e0e0", // Slightly darker on hover
-              },
             }}
           >
-            <span style={{ marginRight: "8px" }}>
-              {/* Sign out icon can be added here */}⎋
-            </span>
+            <span style={{ marginRight: "8px" }}>⎋</span>
             Sign Out
           </button>
 
-          {setDarkMode && (
-            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-          )}
-
-          {/* User info display (removed dropdown) */}
           <div
             style={{
               padding: "8px 12px",
@@ -205,7 +183,7 @@ const TopBanner = ({
         </div>
       </div>
 
-      {/* Bottom Section: Navigation Menu and Tab Controls */}
+      {/* Navigation and Tab Controls */}
       <div
         style={{
           display: "flex",
@@ -214,13 +192,7 @@ const TopBanner = ({
           padding: "10px 20px",
         }}
       >
-        {/* Left: Navigation Menu - now horizontal */}
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-          }}
-        >
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           {menuItems.map((item, index) => (
             <button
               key={index}
@@ -238,23 +210,12 @@ const TopBanner = ({
                 transition: "background-color 0.2s",
               }}
             >
-              <span style={{ marginRight: "8px", fontSize: "1rem" }}>
-                {item.icon}
-              </span>
               {item.label}
             </button>
           ))}
         </div>
 
-        {/* Right: Tab Controls */}
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-          }}
-        >
-          {children}
-        </div>
+        <div style={{ display: "flex", gap: "10px" }}>{children}</div>
       </div>
     </div>
   );
