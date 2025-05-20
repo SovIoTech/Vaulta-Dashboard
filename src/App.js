@@ -490,7 +490,7 @@ function AppWithAuth({
                   exit="exit"
                   style={{ height: "100%" }}
                 >
-                  <Diagnostics bmsData={bmsData} />
+                  <Diagnostics bmsData={bmsData} user={user} />
                 </motion.div>
               }
             />
