@@ -199,6 +199,175 @@ export const getLastMinuteData = async (
 };
 
 /**
+ * Get battery anomalies from BatteryAnomalies_EC2 table
+ * @param {Object} docClient - DynamoDB DocumentClient instance
+ * @param {String} batteryId - Battery ID (e.g., "BAT-0x440")
+ * @param {Number} limit - Maximum number of anomalies to return (default: 50)
+ * @returns {Promise<Object>} Anomalies data with success status
+ */
+export const getBatteryAnomalies = async (docClient, batteryId, limit = 50) => {
+  try {
+    // First try to query using a GSI on tag_id (if it exists)
+    const queryParams = {
+      TableName: "BatteryAnomalies_EC2",
+      IndexName: "tag_id-timestamp-index", // Assuming GSI exists
+      KeyConditionExpression: "tag_id = :batteryId",
+      ExpressionAttributeValues: {
+        ":batteryId": batteryId,
+      },
+      ScanIndexForward: false, // Sort by timestamp descending (newest first)
+      Limit: limit,
+    };
+
+    // Fallback scan parameters if GSI doesn't exist
+    const scanParams = {
+      TableName: "BatteryAnomalies_EC2",
+      FilterExpression: "tag_id = :batteryId",
+      ExpressionAttributeValues: {
+        ":batteryId": batteryId,
+      },
+      Limit: limit,
+    };
+
+    let result;
+    try {
+      // Try query first (more efficient if GSI exists)
+      result = await docClient.query(queryParams).promise();
+    } catch (queryError) {
+      console.log(
+        "GSI query failed, falling back to scan:",
+        queryError.message
+      );
+      // Fall back to scan if query fails
+      result = await docClient.scan(scanParams).promise();
+    }
+
+    console.log(`Found ${result.Items.length} anomalies for ${batteryId}`);
+
+    // Format the data for the frontend
+    const formattedAnomalies = result.Items.map((item) => ({
+      id: item.id,
+      timestamp: parseInt(item.timestamp) * 1000, // Convert to milliseconds
+      anomaly_score: parseFloat(item.anomaly_score),
+      detection_time: item.detection_time,
+      MaxCellTemp: parseFloat(item.MaxCellTemp),
+      MaximumCellVoltage: parseFloat(item.MaximumCellVoltage),
+      MinCellTemp: parseFloat(item.MinCellTemp),
+      MinimumCellVoltage: parseFloat(item.MinimumCellVoltage),
+      SOCAh: parseFloat(item.SOCAh),
+      SOCPercent: parseFloat(item.SOCPercent),
+      tag_id: item.tag_id,
+      TotalBattVoltage: parseFloat(item.TotalBattVoltage),
+      TotalCurrent: parseFloat(item.TotalCurrent),
+    }));
+
+    // Sort by timestamp (newest first)
+    formattedAnomalies.sort((a, b) => b.timestamp - a.timestamp);
+
+    return {
+      success: true,
+      data: formattedAnomalies,
+      count: formattedAnomalies.length,
+    };
+  } catch (error) {
+    console.error("Error fetching battery anomalies:", error);
+    return {
+      success: false,
+      error: error.message,
+      data: [],
+      count: 0,
+    };
+  }
+};
+
+/**
+ * Get all battery anomalies from BatteryAnomalies_EC2 table (no filtering)
+ * @param {Object} docClient - DynamoDB DocumentClient instance
+ * @param {Number} limit - Maximum number of anomalies to return (default: 50)
+ * @returns {Promise<Object>} All anomalies data with success status
+ */
+export const getAllBatteryAnomalies = async (docClient, limit = 50) => {
+  try {
+    const scanParams = {
+      TableName: "BatteryAnomalies_EC2",
+      Limit: limit,
+    };
+
+    const result = await docClient.scan(scanParams).promise();
+
+    console.log(`Found ${result.Items.length} total anomalies`);
+
+    // Format the data for the frontend
+    const formattedAnomalies = result.Items.map((item) => ({
+      id: item.id,
+      timestamp: parseInt(item.timestamp) * 1000, // Convert to milliseconds
+      anomaly_score: parseFloat(item.anomaly_score),
+      detection_time: item.detection_time,
+      MaxCellTemp: parseFloat(item.MaxCellTemp),
+      MaximumCellVoltage: parseFloat(item.MaximumCellVoltage),
+      MinCellTemp: parseFloat(item.MinCellTemp),
+      MinimumCellVoltage: parseFloat(item.MinimumCellVoltage),
+      SOCAh: parseFloat(item.SOCAh),
+      SOCPercent: parseFloat(item.SOCPercent),
+      tag_id: item.tag_id,
+      TotalBattVoltage: parseFloat(item.TotalBattVoltage),
+      TotalCurrent: parseFloat(item.TotalCurrent),
+    }));
+
+    // Sort by timestamp (newest first)
+    formattedAnomalies.sort((a, b) => b.timestamp - a.timestamp);
+
+    return {
+      success: true,
+      data: formattedAnomalies,
+      count: formattedAnomalies.length,
+      lastEvaluatedKey: result.LastEvaluatedKey, // For pagination
+    };
+  } catch (error) {
+    console.error("Error fetching all battery anomalies:", error);
+    return {
+      success: false,
+      error: error.message,
+      data: [],
+      count: 0,
+    };
+  }
+};
+
+/**
+ * Get all unique battery IDs from BatteryAnomalies_EC2 table
+ * @param {Object} docClient - DynamoDB DocumentClient instance
+ * @returns {Promise<Object>} Available battery IDs with success status
+ */
+export const getAvailableBatteryIds = async (docClient) => {
+  try {
+    const params = {
+      TableName: "BatteryAnomalies_EC2",
+      ProjectionExpression: "tag_id",
+    };
+
+    const result = await docClient.scan(params).promise();
+
+    // Get unique battery IDs
+    const uniqueIds = [...new Set(result.Items.map((item) => item.tag_id))];
+
+    return {
+      success: true,
+      data: uniqueIds.sort(),
+      count: uniqueIds.length,
+    };
+  } catch (error) {
+    console.error("Error fetching available battery IDs:", error);
+    return {
+      success: false,
+      error: error.message,
+      data: [],
+      count: 0,
+    };
+  }
+};
+
+/**
  * Get data from the last hour using hour bucket index
  * @param {Object} docClient - DynamoDB DocumentClient instance
  * @param {String} batteryId - Battery ID
@@ -588,7 +757,7 @@ export const getLatestReadingMinimal = async (docClient, batteryId) => {
       },
       ProjectionExpression: "TagID, #ts, Events, DeviceId",
       ExpressionAttributeNames: {
-        "#ts": "Timestamp"  // Using alias since 'Timestamp' is a reserved word
+        "#ts": "Timestamp", // Using alias since 'Timestamp' is a reserved word
       },
       Limit: 1,
       ScanIndexForward: false, // Descending order (newest first)
@@ -598,19 +767,22 @@ export const getLatestReadingMinimal = async (docClient, batteryId) => {
 
     if (result.Items.length > 0) {
       const item = result.Items[0];
-      
+
       // Convert to the expected format with DynamoDB attribute types
       return {
         TagID: item.TagID,
         Timestamp: { N: item.Timestamp.toString() },
         Events: { N: item.Events.toString() },
-        DeviceId: { N: item.DeviceId.toString() }
+        DeviceId: { N: item.DeviceId.toString() },
       };
     }
 
     return null;
   } catch (error) {
-    console.error(`Error getting minimal latest reading for ${batteryId}:`, error);
+    console.error(
+      `Error getting minimal latest reading for ${batteryId}:`,
+      error
+    );
     throw error;
   }
 };

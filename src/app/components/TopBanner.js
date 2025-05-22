@@ -13,6 +13,7 @@ const TopBanner = ({
 }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [userEmail, setUserEmail] = useState(null);
 
   // Format timestamps
   const formatTime = (date) => {
@@ -25,6 +26,46 @@ const TopBanner = ({
     const date = new Date(timestamp * 1000);
     return date.toLocaleString();
   };
+
+  // Get user email
+  useEffect(() => {
+    const getUserEmail = async () => {
+      try {
+        // First try: Get email from user attributes (most direct way)
+        if (user && user.attributes && user.attributes.email) {
+          setUserEmail(user.attributes.email);
+          return;
+        }
+
+        // Second try: Check if username is an email
+        if (user && user.username && user.username.includes("@")) {
+          setUserEmail(user.username);
+          return;
+        }
+
+        // Third try: Use fetchUserAttributes from Amplify
+        try {
+          const { fetchUserAttributes } = await import("aws-amplify/auth");
+          const userAttributes = await fetchUserAttributes();
+
+          if (userAttributes && userAttributes.email) {
+            setUserEmail(userAttributes.email);
+            return;
+          }
+        } catch (error) {
+          console.log("Could not get email from fetchUserAttributes:", error);
+        }
+
+        // Fallback: Just use username if we can't find the email
+        setUserEmail(user?.username || "User");
+      } catch (error) {
+        console.error("Error getting user email:", error);
+        setUserEmail(user?.username || "User");
+      }
+    };
+
+    getUserEmail();
+  }, [user]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -171,14 +212,38 @@ const TopBanner = ({
           <div
             style={{
               padding: "8px 12px",
-              backgroundColor: "rgba(18, 89, 195, 0.1)",
+              backgroundColor: "rgba(129, 129, 129, 0.1)", // Using gray color
               borderRadius: "20px",
-              color: "#1259c3",
+              color: "#818181", // Gray text color
               fontSize: "0.9rem",
               fontWeight: "500",
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
+              maxWidth: "300px", // Ensure it doesn't push other elements too far
+              overflow: "hidden", // In case email is really long
+              textOverflow: "ellipsis", // Shows ellipsis if it overflows
+              whiteSpace: "nowrap", // Prevents wrapping
             }}
+            title={userEmail} // Show full email on hover
           >
-            {user?.username || "User"}
+            <span
+              style={{
+                backgroundColor: "#818181", // Gray badge color
+                color: "white",
+                borderRadius: "50%",
+                width: "24px",
+                height: "24px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                fontSize: "0.8rem",
+                flexShrink: 0, // Prevent badge from shrinking
+              }}
+            >
+              @
+            </span>
+            {userEmail || user?.username || "User"}
           </div>
         </div>
       </div>
