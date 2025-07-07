@@ -8,6 +8,96 @@
 // Table name
 const TABLE_NAME = "CAN_BMS_Data_Optimized";
 
+<<<<<<< Updated upstream
+=======
+// Logging configuration
+const LOG_LEVELS = {
+  ERROR: 0,
+  WARN: 1,
+  INFO: 2,
+  DEBUG: 3,
+};
+
+const CURRENT_LOG_LEVEL = LOG_LEVELS.INFO; // Adjust as needed
+
+const log = (level, message, data = null) => {
+  if (level <= CURRENT_LOG_LEVEL) {
+    const timestamp = new Date().toISOString();
+    const levelName = Object.keys(LOG_LEVELS).find(
+      (key) => LOG_LEVELS[key] === level
+    );
+
+    if (data) {
+      console.log(`[${timestamp}] [${levelName}] ${message}`, data);
+    } else {
+      console.log(`[${timestamp}] [${levelName}] ${message}`);
+    }
+  }
+};
+
+// Helper function to convert DynamoDB format to app format
+const convertDynamoDBFormat = (item) => {
+  if (!item) return item;
+
+  // If the item is already in the correct format, return it
+  if (!item.N && !item.S && !item.BOOL) {
+    return item;
+  }
+
+  // Convert from DynamoDB format
+  const converted = {};
+  for (const [key, value] of Object.entries(item)) {
+    if (value?.N !== undefined) {
+      converted[key] = { N: value.N };
+    } else if (value?.S !== undefined) {
+      converted[key] = { S: value.S };
+    } else if (value?.BOOL !== undefined) {
+      converted[key] = { BOOL: value.BOOL };
+    } else if (
+      typeof value === "number" ||
+      typeof value === "string" ||
+      typeof value === "boolean"
+    ) {
+      // Already in simple format
+      converted[key] = value;
+    } else {
+      converted[key] = value;
+    }
+  }
+  return converted;
+};
+
+// Helper function to round a value to 2 decimal places
+const roundToTwoDecimals = (value) => {
+  if (typeof value === "number") {
+    return parseFloat(value.toFixed(2));
+  }
+  return value;
+};
+
+// Helper function to build projection expression for bucket queries
+const buildBucketProjectionExpression = (attributes) => {
+  if (!attributes || attributes.length === 0) {
+    return {};
+  }
+
+  const attrNames = { "#ts": "Timestamp" };
+  const projectionItems = ["TagID", "#ts"];
+
+  attributes.forEach((attr, index) => {
+    if (attr !== "TagID" && attr !== "Timestamp") {
+      attrNames[`#attr${index}`] = attr;
+      projectionItems.push(`#attr${index}`);
+    }
+  });
+
+  return {
+    ExpressionAttributeNames: attrNames,
+    ProjectionExpression: projectionItems.join(", "),
+  };
+};
+
+>>>>>>> Stashed changes
 /**
  * Get the latest reading for a battery
  * @param {Object} docClient - DynamoDB DocumentClient instance
@@ -16,6 +106,11 @@ const TABLE_NAME = "CAN_BMS_Data_Optimized";
  */
 export const getLatestReading = async (docClient, batteryId) => {
   try {
+<<<<<<< Updated upstream
+=======
+    log(LOG_LEVELS.INFO, `Getting latest reading for battery: ${batteryId}`);
+
+>>>>>>> Stashed changes
     const params = {
       TableName: TABLE_NAME,
       KeyConditionExpression: "TagID = :tid",
@@ -25,6 +120,7 @@ export const getLatestReading = async (docClient, batteryId) => {
       Limit: 1,
       ScanIndexForward: false // Descending order (newest first)
     };
+<<<<<<< Updated upstream
     
     const result = await docClient.query(params).promise();
     return result.Items.length > 0 ? result.Items[0] : null;
@@ -57,6 +153,45 @@ export const getLatestReadingsAll = async (docClient, limit = 10) => {
     return result.Items;
   } catch (error) {
     console.error("Error getting latest readings:", error);
+=======
+
+    const result = await docClient.query(params).promise();
+
+    log(
+      LOG_LEVELS.DEBUG,
+      `Latest reading query returned ${result.Items.length} items`
+    );
+
+    if (result.Items.length > 0) {
+      const item = result.Items[0];
+      const convertedItem = {};
+
+      for (const [key, value] of Object.entries(item)) {
+        if (typeof value === "number") {
+          convertedItem[key] = { N: value.toString() };
+        } else if (typeof value === "string" && key !== "TagID") {
+          if (!isNaN(value)) {
+            convertedItem[key] = { N: value };
+          } else {
+            convertedItem[key] = { S: value };
+          }
+        } else {
+          convertedItem[key] = value;
+        }
+      }
+
+      return convertedItem;
+    }
+
+    log(LOG_LEVELS.WARN, `No latest reading found for battery: ${batteryId}`);
+    return null;
+  } catch (error) {
+    log(
+      LOG_LEVELS.ERROR,
+      `Error getting latest reading for ${batteryId}:`,
+      error
+    );
+>>>>>>> Stashed changes
     throw error;
   }
 };
@@ -72,7 +207,16 @@ export const getLastMinuteData = async (docClient, batteryId, attributes = null)
   try {
     const now = Math.floor(Date.now() / 1000);
     const oneMinuteAgo = now - 60;
+<<<<<<< Updated upstream
     
+=======
+
+    log(LOG_LEVELS.INFO, `Getting last minute data for battery: ${batteryId}`, {
+      startTime: new Date(oneMinuteAgo * 1000).toISOString(),
+      endTime: new Date(now * 1000).toISOString(),
+    });
+
+>>>>>>> Stashed changes
     const params = {
       TableName: TABLE_NAME,
       KeyConditionExpression: "TagID = :tid AND #ts > :time",
@@ -110,11 +254,45 @@ export const getLastMinuteData = async (docClient, batteryId, attributes = null)
         params.ProjectionExpression = projectionItems.join(", ");
       }
     }
+<<<<<<< Updated upstream
     
     const result = await docClient.query(params).promise();
     return result.Items;
   } catch (error) {
     console.error(`Error getting last minute data for ${batteryId}:`, error);
+=======
+
+    const result = await docClient.query(params).promise();
+
+    log(
+      LOG_LEVELS.DEBUG,
+      `Last minute query returned ${result.Items.length} items`
+    );
+
+    return result.Items.map((item) => {
+      const convertedItem = {};
+      for (const [key, value] of Object.entries(item)) {
+        if (typeof value === "number") {
+          convertedItem[key] = { N: value.toString() };
+        } else if (typeof value === "string" && key !== "TagID") {
+          if (!isNaN(value)) {
+            convertedItem[key] = { N: value };
+          } else {
+            convertedItem[key] = { S: value };
+          }
+        } else {
+          convertedItem[key] = value;
+        }
+      }
+      return convertedItem;
+    });
+  } catch (error) {
+    log(
+      LOG_LEVELS.ERROR,
+      `Error getting last minute data for ${batteryId}:`,
+      error
+    );
+>>>>>>> Stashed changes
     throw error;
   }
 };
@@ -131,7 +309,16 @@ export const getLastHourData = async (docClient, batteryId, attributes = null) =
     const date = new Date();
     const hourStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}${String(date.getHours()).padStart(2, '0')}`;
     const hourBucket = `${batteryId}#HOUR_${hourStr}`;
+<<<<<<< Updated upstream
     
+=======
+
+    log(LOG_LEVELS.INFO, `Getting last hour data for battery: ${batteryId}`, {
+      hourBucket,
+      currentTime: date.toISOString(),
+    });
+
+>>>>>>> Stashed changes
     const params = {
       TableName: TABLE_NAME,
       IndexName: "HourlyBucketIndex",
@@ -147,9 +334,25 @@ export const getLastHourData = async (docClient, batteryId, attributes = null) =
     }
     
     const result = await docClient.query(params).promise();
+<<<<<<< Updated upstream
     return result.Items;
   } catch (error) {
     console.error(`Error getting last hour data for ${batteryId}:`, error);
+=======
+
+    log(
+      LOG_LEVELS.DEBUG,
+      `Hour bucket query returned ${result.Items.length} items`
+    );
+
+    return result.Items.map(convertDynamoDBFormat);
+  } catch (error) {
+    log(
+      LOG_LEVELS.ERROR,
+      `Error getting last hour data for ${batteryId}:`,
+      error
+    );
+>>>>>>> Stashed changes
     throw error;
   }
 };
@@ -164,9 +367,22 @@ export const getLastHourData = async (docClient, batteryId, attributes = null) =
 export const getLastDayData = async (docClient, batteryId, attributes = null) => {
   try {
     const date = new Date();
+<<<<<<< Updated upstream
     const dayStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
     const dayBucket = `${batteryId}#DAY_${dayStr}`;
     
+=======
+    const dayStr = `${date.getFullYear()}-${String(
+      date.getMonth() + 1
+    ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    const dayBucket = `${batteryId}#${dayStr}`;
+
+    log(LOG_LEVELS.INFO, `Getting last day data for battery: ${batteryId}`, {
+      dayBucket,
+      currentDate: date.toISOString(),
+    });
+
+>>>>>>> Stashed changes
     const params = {
       TableName: TABLE_NAME,
       IndexName: "DailyBucketIndex",
@@ -179,9 +395,25 @@ export const getLastDayData = async (docClient, batteryId, attributes = null) =>
     // Add projection expression if needed
     
     const result = await docClient.query(params).promise();
+<<<<<<< Updated upstream
     return result.Items;
   } catch (error) {
     console.error(`Error getting last day data for ${batteryId}:`, error);
+=======
+
+    log(
+      LOG_LEVELS.INFO,
+      `Day bucket query returned ${result.Items.length} items for bucket: ${dayBucket}`
+    );
+
+    return result.Items.map(convertDynamoDBFormat);
+  } catch (error) {
+    log(
+      LOG_LEVELS.ERROR,
+      `Error getting last day data for ${batteryId}:`,
+      error
+    );
+>>>>>>> Stashed changes
     throw error;
   }
 };
@@ -198,7 +430,16 @@ export const getLastMonthData = async (docClient, batteryId, attributes = null) 
     const date = new Date();
     const monthStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}`;
     const monthBucket = `${batteryId}#MONTH_${monthStr}`;
+<<<<<<< Updated upstream
     
+=======
+
+    log(LOG_LEVELS.INFO, `Getting last month data for battery: ${batteryId}`, {
+      monthBucket,
+      currentMonth: date.toISOString(),
+    });
+
+>>>>>>> Stashed changes
     const params = {
       TableName: TABLE_NAME,
       IndexName: "MonthlyBucketIndex",
@@ -211,9 +452,25 @@ export const getLastMonthData = async (docClient, batteryId, attributes = null) 
     // Add projection expression if needed
     
     const result = await docClient.query(params).promise();
+<<<<<<< Updated upstream
     return result.Items;
   } catch (error) {
     console.error(`Error getting last month data for ${batteryId}:`, error);
+=======
+
+    log(
+      LOG_LEVELS.DEBUG,
+      `Month bucket query returned ${result.Items.length} items`
+    );
+
+    return result.Items.map(convertDynamoDBFormat);
+  } catch (error) {
+    log(
+      LOG_LEVELS.ERROR,
+      `Error getting last month data for ${batteryId}:`,
+      error
+    );
+>>>>>>> Stashed changes
     throw error;
   }
 };
@@ -229,6 +486,15 @@ export const getLastMonthData = async (docClient, batteryId, attributes = null) 
  */
 export const getTimeRangeData = async (docClient, batteryId, startTime, endTime, attributes = null) => {
   try {
+<<<<<<< Updated upstream
+=======
+    log(LOG_LEVELS.INFO, `Getting time range data for battery: ${batteryId}`, {
+      startTime: new Date(startTime * 1000).toISOString(),
+      endTime: new Date(endTime * 1000).toISOString(),
+      duration: `${(endTime - startTime) / 60} minutes`,
+    });
+
+>>>>>>> Stashed changes
     const params = {
       TableName: TABLE_NAME,
       KeyConditionExpression: "TagID = :tid AND #ts BETWEEN :start AND :end",
@@ -245,9 +511,25 @@ export const getTimeRangeData = async (docClient, batteryId, startTime, endTime,
     // Add projection expression if needed
     
     const result = await docClient.query(params).promise();
+<<<<<<< Updated upstream
     return result.Items;
   } catch (error) {
     console.error(`Error getting time range data for ${batteryId}:`, error);
+=======
+
+    log(
+      LOG_LEVELS.DEBUG,
+      `Time range query returned ${result.Items.length} items`
+    );
+
+    return result.Items.map(convertDynamoDBFormat);
+  } catch (error) {
+    log(
+      LOG_LEVELS.ERROR,
+      `Error getting time range data for ${batteryId}:`,
+      error
+    );
+>>>>>>> Stashed changes
     throw error;
   }
 };
@@ -263,6 +545,7 @@ export const getLast7DaysData = async (docClient, batteryId, attributes = null) 
   try {
     // Generate buckets for the last 7 days
     const dayBuckets = [];
+<<<<<<< Updated upstream
     for (let i = 0; i < 7; i++) {
       const date = new Date();
       date.setDate(date.getDate() - i);
@@ -272,6 +555,27 @@ export const getLast7DaysData = async (docClient, batteryId, attributes = null) 
     
     // Query each day bucket in parallel
     const queryPromises = dayBuckets.map(bucket => {
+=======
+    const dateInfo = [];
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dayStr = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      const bucket = `${batteryId}#${dayStr}`;
+
+      dayBuckets.push(bucket);
+      dateInfo.push({ day: i, date: date.toISOString(), bucket });
+    }
+
+    log(LOG_LEVELS.INFO, `Getting last 7 days data for battery: ${batteryId}`, {
+      buckets: dayBuckets,
+    });
+
+    const queryPromises = dayBuckets.map((bucket, index) => {
+>>>>>>> Stashed changes
       const params = {
         TableName: TABLE_NAME,
         IndexName: "DailyBucketIndex",
@@ -279,20 +583,53 @@ export const getLast7DaysData = async (docClient, batteryId, attributes = null) 
         ExpressionAttributeValues: {
           ":bucket": bucket
         }
+<<<<<<< Updated upstream
       };
       
       // Add projection expression if needed
       
       return docClient.query(params).promise();
+=======
+      }
+
+      return docClient
+        .query(params)
+        .promise()
+        .then((result) => {
+          log(
+            LOG_LEVELS.DEBUG,
+            `Day ${index} (${bucket}) returned ${result.Items.length} items`
+          );
+          return result;
+        })
+        .catch((error) => {
+          log(LOG_LEVELS.ERROR, `Error querying bucket ${bucket}:`, error);
+          return { Items: [] }; // Return empty items on error
+        });
+>>>>>>> Stashed changes
     });
     
     // Wait for all queries to complete
     const results = await Promise.all(queryPromises);
+<<<<<<< Updated upstream
     
     // Combine results from all days
     return results.flatMap(result => result.Items || []);
   } catch (error) {
     console.error(`Error getting last 7 days data for ${batteryId}:`, error);
+=======
+    const allItems = results.flatMap((result) => result.Items || []);
+
+    log(LOG_LEVELS.INFO, `7-day query returned total ${allItems.length} items`);
+
+    return allItems.map(convertDynamoDBFormat);
+  } catch (error) {
+    log(
+      LOG_LEVELS.ERROR,
+      `Error getting last 7 days data for ${batteryId}:`,
+      error
+    );
+>>>>>>> Stashed changes
     throw error;
   }
 };
@@ -300,11 +637,24 @@ export const getLast7DaysData = async (docClient, batteryId, attributes = null) 
 // Export a function to add pagination support to any query
 export const paginateQuery = async (docClient, queryFn, params, allItems = []) => {
   try {
+<<<<<<< Updated upstream
     const result = await queryFn(params).promise();
     
     // Add items from this page
     if (result.Items && result.Items.length > 0) {
       allItems = [...allItems, ...result.Items];
+=======
+    log(
+      LOG_LEVELS.INFO,
+      `Starting fetchData for TagId: ${selectedTagId}, TimeRange: ${selectedTimeRange}`
+    );
+
+    const session = await fetchAuthSession();
+    const credentials = session.credentials;
+
+    if (!credentials) {
+      throw new Error("No credentials available");
+>>>>>>> Stashed changes
     }
     
     // If there are more items to fetch
@@ -315,10 +665,505 @@ export const paginateQuery = async (docClient, queryFn, params, allItems = []) =
       // Recursive call to fetch next page
       return paginateQuery(docClient, queryFn, params, allItems);
     }
+<<<<<<< Updated upstream
     
     return allItems;
   } catch (error) {
     console.error('Error during paginated query:', error);
+=======
+
+    log(
+      LOG_LEVELS.INFO,
+      `Fetched ${fetchedData.length} items for ${batteryId}`
+    );
+
+    if (!fetchedData || fetchedData.length === 0) {
+      log(
+        LOG_LEVELS.WARN,
+        `No data found for ${batteryId} in time range ${selectedTimeRange}`
+      );
+      return {
+        error: "No data found",
+        batteryId,
+        timeRange: selectedTimeRange,
+        Node0: {
+          voltage: { cellVoltages: Array.from({ length: 14 }, () => []) },
+          temperature: {},
+        },
+        Node1: {
+          voltage: { cellVoltages: Array.from({ length: 14 }, () => []) },
+          temperature: {},
+        },
+        Pack: {},
+        Cell: {},
+        Temperature: {},
+        SOC: {},
+      };
+    }
+
+    // Initialize structured data
+    const structuredData = {
+      Node0: {
+        voltage: {
+          cellVoltages: Array.from({ length: 14 }, () => []),
+        },
+        temperature: {},
+      },
+      Node1: {
+        voltage: {
+          cellVoltages: Array.from({ length: 14 }, () => []),
+        },
+        temperature: {},
+      },
+      Pack: {
+        numParallelNodes: null,
+        numNodes: null,
+        thresholdOverCurrent: null,
+        modes: null,
+        totalBattVoltage: null,
+        totalLoadVoltage: null,
+        totalCurrent: null,
+        serialNumber: null,
+        state: null,
+        events: null,
+      },
+      Cell: {
+        maxCellVoltage: null,
+        minCellVoltage: null,
+        maxCellVoltageCellNo: null,
+        minCellVoltageCellNo: null,
+        maxCellVoltageNode: null,
+        minCellVoltageNode: null,
+        thresholdOverVoltage: null,
+        thresholdUnderVoltage: null,
+        criticalOverVoltThreshold: null,
+        criticalUnderVoltThreshold: null,
+        balanceThresholdVoltage: null,
+      },
+      Temperature: {
+        maxCellTemp: null,
+        minCellTemp: null,
+        maxCellTempNode: null,
+        minCellTempNode: null,
+        thresholdOverTemp: null,
+        thresholdUnderTemp: null,
+      },
+      SOC: {
+        socPercent: null,
+        socAh: null,
+        balanceSOCPercent: null,
+        balanceSOCAh: null,
+      },
+    };
+
+    // Process fetched data
+    fetchedData.forEach((item) => {
+      // Process Node0 data
+      for (let i = 0; i < 14; i++) {
+        const cellKey = `Node00Cell${i < 10 ? `0${i}` : i}`;
+        if (item[cellKey] !== undefined && item[cellKey] !== null) {
+          structuredData.Node0.voltage.cellVoltages[i].push(
+            roundToTwoDecimals(item[cellKey])
+          );
+        }
+      }
+
+      // Process Node0 temperature keys
+      for (let i = 0; i < 6; i++) {
+        const tempKey = `Node00Temp${i < 10 ? `0${i}` : i}`;
+        if (item[tempKey] !== undefined && item[tempKey] !== null) {
+          if (!structuredData.Node0.temperature[tempKey]) {
+            structuredData.Node0.temperature[tempKey] = [];
+          }
+          structuredData.Node0.temperature[tempKey].push(
+            roundToTwoDecimals(item[tempKey])
+          );
+        }
+      }
+
+      // Process Node1 data
+      for (let i = 0; i < 14; i++) {
+        const cellKey = `Node01Cell${i < 10 ? `0${i}` : i}`;
+        if (item[cellKey] !== undefined && item[cellKey] !== null) {
+          structuredData.Node1.voltage.cellVoltages[i].push(
+            roundToTwoDecimals(item[cellKey])
+          );
+        }
+      }
+
+      // Process Node1 temperature keys
+      for (let i = 0; i < 6; i++) {
+        const tempKey = `Node01Temp${i < 10 ? `0${i}` : i}`;
+        if (item[tempKey] !== undefined && item[tempKey] !== null) {
+          if (!structuredData.Node1.temperature[tempKey]) {
+            structuredData.Node1.temperature[tempKey] = [];
+          }
+          structuredData.Node1.temperature[tempKey].push(
+            roundToTwoDecimals(item[tempKey])
+          );
+        }
+      }
+
+      // Process Pack-Level Data
+      if (item.TotalBattVoltage !== undefined) {
+        structuredData.Pack = {
+          numParallelNodes:
+            item.PackNumParallelNodes || structuredData.Pack.numParallelNodes,
+          numNodes: item.PackNumNodes || structuredData.Pack.numNodes,
+          thresholdOverCurrent:
+            item.PackThresholdOverCurrent !== undefined
+              ? roundToTwoDecimals(item.PackThresholdOverCurrent)
+              : structuredData.Pack.thresholdOverCurrent,
+          modes: item.PackModes || structuredData.Pack.modes,
+          totalBattVoltage:
+            item.TotalBattVoltage !== undefined
+              ? roundToTwoDecimals(item.TotalBattVoltage)
+              : structuredData.Pack.totalBattVoltage,
+          totalLoadVoltage:
+            item.TotalLoadVoltage !== undefined
+              ? roundToTwoDecimals(item.TotalLoadVoltage)
+              : structuredData.Pack.totalLoadVoltage,
+          totalCurrent:
+            item.TotalCurrent !== undefined
+              ? roundToTwoDecimals(item.TotalCurrent)
+              : structuredData.Pack.totalCurrent,
+          serialNumber: item.SerialNumber || structuredData.Pack.serialNumber,
+          state: item.State || structuredData.Pack.state,
+          events: item.Events || structuredData.Pack.events,
+        };
+      }
+
+      // Process Cell-Level Data
+      if (
+        item.MaximumCellVoltage !== undefined ||
+        item.MinimumCellVoltage !== undefined
+      ) {
+        structuredData.Cell = {
+          maxCellVoltage:
+            item.MaximumCellVoltage !== undefined
+              ? roundToTwoDecimals(item.MaximumCellVoltage)
+              : structuredData.Cell.maxCellVoltage,
+          minCellVoltage:
+            item.MinimumCellVoltage !== undefined
+              ? roundToTwoDecimals(item.MinimumCellVoltage)
+              : structuredData.Cell.minCellVoltage,
+          maxCellVoltageCellNo:
+            item.MaximumCellVoltageCellNo ||
+            structuredData.Cell.maxCellVoltageCellNo,
+          minCellVoltageCellNo:
+            item.MinimumCellVoltageCellNo ||
+            structuredData.Cell.minCellVoltageCellNo,
+          maxCellVoltageNode:
+            item.MaximumCellVoltageNode ||
+            structuredData.Cell.maxCellVoltageNode,
+          minCellVoltageNode:
+            item.MinimumCellVoltageNode ||
+            structuredData.Cell.minCellVoltageNode,
+          thresholdOverVoltage:
+            item.CellThresholdOverVoltage !== undefined
+              ? roundToTwoDecimals(item.CellThresholdOverVoltage)
+              : structuredData.Cell.thresholdOverVoltage,
+          thresholdUnderVoltage:
+            item.CellThresholdUnderVoltage !== undefined
+              ? roundToTwoDecimals(item.CellThresholdUnderVoltage)
+              : structuredData.Cell.thresholdUnderVoltage,
+          criticalOverVoltThreshold:
+            item.CellCriticalOverVoltThreshold !== undefined
+              ? roundToTwoDecimals(item.CellCriticalOverVoltThreshold)
+              : structuredData.Cell.criticalOverVoltThreshold,
+          criticalUnderVoltThreshold:
+            item.CellCriticalUnderVoltThreshold !== undefined
+              ? roundToTwoDecimals(item.CellCriticalUnderVoltThreshold)
+              : structuredData.Cell.criticalUnderVoltThreshold,
+          balanceThresholdVoltage:
+            item.CellBalanceThresholdVoltage !== undefined
+              ? roundToTwoDecimals(item.CellBalanceThresholdVoltage)
+              : structuredData.Cell.balanceThresholdVoltage,
+        };
+      }
+
+      // Process Temperature Data
+      if (item.MaxCellTemp !== undefined || item.MinCellTemp !== undefined) {
+        structuredData.Temperature = {
+          maxCellTemp:
+            item.MaxCellTemp !== undefined
+              ? roundToTwoDecimals(item.MaxCellTemp)
+              : structuredData.Temperature.maxCellTemp,
+          minCellTemp:
+            item.MinCellTemp !== undefined
+              ? roundToTwoDecimals(item.MinCellTemp)
+              : structuredData.Temperature.minCellTemp,
+          maxCellTempNode:
+            item.MaxCellTempNode || structuredData.Temperature.maxCellTempNode,
+          minCellTempNode:
+            item.MinCellTempNode || structuredData.Temperature.minCellTempNode,
+          thresholdOverTemp:
+            item.TempThresholdOverTemp !== undefined
+              ? roundToTwoDecimals(item.TempThresholdOverTemp)
+              : structuredData.Temperature.thresholdOverTemp,
+          thresholdUnderTemp:
+            item.TempThresholdUnderTemp !== undefined
+              ? roundToTwoDecimals(item.TempThresholdUnderTemp)
+              : structuredData.Temperature.thresholdUnderTemp,
+        };
+      }
+
+      // Process SOC Data
+      if (item.SOCPercent !== undefined || item.SOCAh !== undefined) {
+        structuredData.SOC = {
+          socPercent:
+            item.SOCPercent !== undefined
+              ? roundToTwoDecimals(item.SOCPercent)
+              : structuredData.SOC.socPercent,
+          socAh:
+            item.SOCAh !== undefined
+              ? roundToTwoDecimals(item.SOCAh)
+              : structuredData.SOC.socAh,
+          balanceSOCPercent:
+            item.BalanceSOCPercent !== undefined
+              ? roundToTwoDecimals(item.BalanceSOCPercent)
+              : structuredData.SOC.balanceSOCPercent,
+          balanceSOCAh:
+            item.BalanceSOCAh !== undefined
+              ? roundToTwoDecimals(item.BalanceSOCAh)
+              : structuredData.SOC.balanceSOCAh,
+        };
+      }
+    });
+
+    log(LOG_LEVELS.INFO, `Successfully processed data for ${batteryId}`);
+    return structuredData;
+  } catch (error) {
+    log(LOG_LEVELS.ERROR, "Error in fetchData:", error);
+    throw error;
+  }
+};
+
+// Battery anomalies functions
+export const getBatteryAnomalies = async (docClient, batteryId, limit = 50) => {
+  try {
+    log(
+      LOG_LEVELS.INFO,
+      `Getting battery anomalies for: ${batteryId}, limit: ${limit}`
+    );
+
+    const queryParams = {
+      TableName: "BatteryAnomalies_EC2",
+      IndexName: "tag_id-timestamp-index",
+      KeyConditionExpression: "tag_id = :batteryId",
+      ExpressionAttributeValues: {
+        ":batteryId": batteryId,
+      },
+      ScanIndexForward: false,
+      Limit: limit,
+    };
+
+    const scanParams = {
+      TableName: "BatteryAnomalies_EC2",
+      FilterExpression: "tag_id = :batteryId",
+      ExpressionAttributeValues: {
+        ":batteryId": batteryId,
+      },
+      Limit: limit,
+    };
+
+    let result;
+    try {
+      result = await docClient.query(queryParams).promise();
+      log(
+        LOG_LEVELS.DEBUG,
+        `Anomalies query returned ${result.Items.length} items`
+      );
+    } catch (queryError) {
+      log(LOG_LEVELS.WARN, `Query failed, falling back to scan`, queryError);
+      result = await docClient.scan(scanParams).promise();
+    }
+
+    const formattedAnomalies = result.Items.map((item) => ({
+      id: item.id,
+      timestamp: parseInt(item.timestamp) * 1000,
+      anomaly_score: parseFloat(item.anomaly_score),
+      detection_time: item.detection_time,
+      MaxCellTemp: parseFloat(item.MaxCellTemp),
+      MaximumCellVoltage: parseFloat(item.MaximumCellVoltage),
+      MinCellTemp: parseFloat(item.MinCellTemp),
+      MinimumCellVoltage: parseFloat(item.MinimumCellVoltage),
+      SOCAh: parseFloat(item.SOCAh),
+      SOCPercent: parseFloat(item.SOCPercent),
+      tag_id: item.tag_id,
+      TotalBattVoltage: parseFloat(item.TotalBattVoltage),
+      TotalCurrent: parseFloat(item.TotalCurrent),
+    }));
+
+    formattedAnomalies.sort((a, b) => b.timestamp - a.timestamp);
+
+    return {
+      success: true,
+      data: formattedAnomalies,
+      count: formattedAnomalies.length,
+    };
+  } catch (error) {
+    log(LOG_LEVELS.ERROR, "Error fetching battery anomalies:", error);
+    return {
+      success: false,
+      error: error.message,
+      data: [],
+      count: 0,
+    };
+  }
+};
+
+export const getAllBatteryAnomalies = async (docClient, limit = 50) => {
+  try {
+    log(LOG_LEVELS.INFO, `Getting all battery anomalies, limit: ${limit}`);
+
+    const scanParams = {
+      TableName: "BatteryAnomalies_EC2",
+      Limit: limit,
+    };
+
+    const result = await docClient.scan(scanParams).promise();
+
+    log(
+      LOG_LEVELS.DEBUG,
+      `All anomalies scan returned ${result.Items.length} items`
+    );
+
+    const formattedAnomalies = result.Items.map((item) => ({
+      id: item.id,
+      timestamp: parseInt(item.timestamp) * 1000,
+      anomaly_score: parseFloat(item.anomaly_score),
+      detection_time: item.detection_time,
+      MaxCellTemp: parseFloat(item.MaxCellTemp),
+      MaximumCellVoltage: parseFloat(item.MaximumCellVoltage),
+      MinCellTemp: parseFloat(item.MinCellTemp),
+      MinimumCellVoltage: parseFloat(item.MinimumCellVoltage),
+      SOCAh: parseFloat(item.SOCAh),
+      SOCPercent: parseFloat(item.SOCPercent),
+      tag_id: item.tag_id,
+      TotalBattVoltage: parseFloat(item.TotalBattVoltage),
+      TotalCurrent: parseFloat(item.TotalCurrent),
+    }));
+
+    formattedAnomalies.sort((a, b) => b.timestamp - a.timestamp);
+
+    return {
+      success: true,
+      data: formattedAnomalies,
+      count: formattedAnomalies.length,
+      lastEvaluatedKey: result.LastEvaluatedKey,
+    };
+  } catch (error) {
+    log(LOG_LEVELS.ERROR, "Error fetching all battery anomalies:", error);
+    return {
+      success: false,
+      error: error.message,
+      data: [],
+      count: 0,
+    };
+  }
+};
+
+export const getAvailableBatteryIds = async (docClient) => {
+  try {
+    log(LOG_LEVELS.INFO, `Getting available battery IDs`);
+
+    const params = {
+      TableName: "BatteryAnomalies_EC2",
+      ProjectionExpression: "tag_id",
+    };
+
+    const result = await docClient.scan(params).promise();
+    const uniqueIds = [...new Set(result.Items.map((item) => item.tag_id))];
+
+    log(LOG_LEVELS.DEBUG, `Found ${uniqueIds.length} unique battery IDs`);
+
+    return {
+      success: true,
+      data: uniqueIds.sort(),
+      count: uniqueIds.length,
+    };
+  } catch (error) {
+    log(LOG_LEVELS.ERROR, "Error fetching available battery IDs:", error);
+    return {
+      success: false,
+      error: error.message,
+      data: [],
+      count: 0,
+    };
+  }
+};
+
+// Legacy function names for backward compatibility
+export const getLastInsertedData = async (docClient, tableName, tagID) => {
+  return getLatestReading(docClient, tagID);
+};
+
+export const getDataByTagAndTimestamp = async (
+  docClient,
+  tableName,
+  tagID,
+  startTime,
+  endTime
+) => {
+  return getTimeRangeData(docClient, tagID, startTime, endTime);
+};
+
+export const getDataByTimestamp = async (
+  docClient,
+  tableName,
+  tagID,
+  timestamp
+) => {
+  return getTimeRangeData(docClient, tagID, timestamp, timestamp);
+};
+
+export const getLatestReadingMinimal = async (docClient, batteryId) => {
+  try {
+    log(
+      LOG_LEVELS.INFO,
+      `Getting minimal latest reading for battery: ${batteryId}`
+    );
+
+    const params = {
+      TableName: TABLE_NAME,
+      KeyConditionExpression: "TagID = :tid",
+      ExpressionAttributeValues: {
+        ":tid": batteryId,
+      },
+      ProjectionExpression: "TagID, #ts, Events, DeviceId",
+      ExpressionAttributeNames: {
+        "#ts": "Timestamp",
+      },
+      Limit: 1,
+      ScanIndexForward: false,
+    };
+
+    const result = await docClient.query(params).promise();
+
+    if (result.Items.length > 0) {
+      const item = result.Items[0];
+
+      return {
+        TagID: item.TagID,
+        Timestamp: { N: item.Timestamp.toString() },
+        Events: { N: item.Events.toString() },
+        DeviceId: { N: item.DeviceId.toString() },
+      };
+    }
+
+    log(
+      LOG_LEVELS.WARN,
+      `No minimal latest reading found for battery: ${batteryId}`
+    );
+    return null;
+  } catch (error) {
+    log(
+      LOG_LEVELS.ERROR,
+      `Error getting minimal latest reading for ${batteryId}:`,
+      error
+    );
+>>>>>>> Stashed changes
     throw error;
   }
 };
