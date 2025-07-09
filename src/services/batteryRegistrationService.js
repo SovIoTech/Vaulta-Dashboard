@@ -1,7 +1,7 @@
 // src/services/batteryRegistrationService.js
 import { fetchAuthSession } from "aws-amplify/auth";
 import AWS from "aws-sdk";
-import awsconfig from "../aws-exports.js";
+import awsconfig from "../config/index.js";
 import { useState, useEffect } from "react";
 
 class BatteryRegistrationService {
